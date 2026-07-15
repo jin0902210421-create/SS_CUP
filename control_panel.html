@@ -1,25 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>大会運営コントロールパネル</title>
+    <style>
+        body { background-color: #202020; color: #fff; font-family: sans-serif; margin: 10px; font-size: 14px; }
+        .area-title { font-weight: bold; color: #ff007f; border-bottom: 2px solid #ff007f; padding-bottom: 5px; margin-bottom: 15px; font-size: 14px; }
+        .team-setup { display: flex; justify-content: space-between; gap: 15px; }
+        .team-box { flex: 1; background-color: #2d2d2d; padding: 15px; border-radius: 8px; border: 1px solid #444; }
+        .team-box.alpha { border-left: 6px solid #24b200; }
+        .team-box.bravo { border-left: 6px solid #ff7c00; }
+        label { display: block; margin-bottom: 6px; font-size: 13px; color: #aaa; font-weight: bold; }
+        select, button { width: 100%; padding: 10px; background-color: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 6px; box-sizing: border-box; margin-bottom: 12px; font-weight: bold; font-size: 14px; }
+        select:focus { border-color: #ff007f; outline: none; }
+        .score-control { display: flex; align-items: center; gap: 10px; }
+        .score-btn { background-color: #444; cursor: pointer; font-size: 18px; margin-bottom: 0; }
+        .score-btn:hover { background-color: #555; }
+        .score-display { text-align: center; font-size: 24px; font-weight: bold; width: 50px; background: #111; border-radius: 6px; padding: 6px 0; }
+        .status-text { font-size: 11px; color: #00ffcc; text-align: center; margin-top: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="area-title">🏆 スプラ3 大会運営コントロールパネル (Sheet連動版)</div>
+    <div class="team-setup">
+        <div class="team-box alpha"><label>左チーム（緑）</label><select id="leftTeamSelect" onchange="update()"></select><div class="score-control"><button class="score-btn" onclick="change('left', -1)">-</button><div class="score-display" id="leftScore">0</div><button class="score-btn" onclick="change('left', 1)">+</button></div></div>
+        <div class="team-box bravo"><label>右チーム（ピンク）</label><select id="rightTeamSelect" onchange="update()"></select><div class="score-control"><button class="score-btn" onclick="change('right', -1)">-</button><div class="score-display" id="rightScore">0</div><button class="score-btn" onclick="change('right', 1)">+</button></div></div>
+    </div>
+    <div class="status-text" id="loadStatus">スプレッドシート同期中...</div>
+</div>
+
+<script>
+    // =========================================================================
+    // 🔗 【設定箇所】ご自身のGoogleスプレッドシートID
+    // =========================================================================
+    const SPREADSHEET_ID = '1-rTsNU4FdeSF1qc3gZinJzRK8jJTXIRKQKKEOicokHA';
+    // =========================================================================
+
+    let tournamentData = {};
+
     // 起動時にGoogleスプレッドシートから名簿を自動取得
     async function loadSpreadsheetData() {
-        // ★修正ポイント：「ウェブに公開」を使わず、通常の共有リンクのままJSON形式のデータを取得するGoogle公式APIのルートに変更しました
         const url = `https://google.com{SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
         try {
             const response = await fetch(url);
             const rawText = await response.text();
             
-            // Google API特有のノイズテキスト（google.visualization...）を除去して純粋なJSONにする
             const jsonText = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
             const dataObj = JSON.parse(jsonText);
             const rows = dataObj.table.rows;
             
             tournamentData = {};
             
-            // スプレッドシートの行をループ処理
             rows.forEach((row, index) => {
                 const cells = row.c;
                 if (cells && cells[0] && cells[0].v) {
                     const teamName = cells[0].v;
                     const members = [];
-                    // 選手1〜4の名前を取得（空なら空文字を入れる）
                     for (let i = 1; i <= 4; i++) {
                         members.push((cells[i] && cells[i].v) ? cells[i].v.toString() : "");
                     }
@@ -31,7 +68,6 @@
                 }
             });
 
-            // 左右のプルダウンの選択肢を生成
             ['leftTeamSelect', 'rightTeamSelect'].forEach(id => {
                 let h = '<option value="none">-- 選択してください --</option>';
                 for(let k in tournamentData) h += `<option value="${k}">${tournamentData[k].name}</option>`;
@@ -45,3 +81,28 @@
             document.getElementById('loadStatus').style.color = "#ff3c12";
         }
     }
+
+    window.addEventListener('DOMContentLoaded', loadSpreadsheetData);
+
+    function change(side, amt) {
+        let el = document.getElementById(`${side}Score`);
+        el.innerText = Math.max(0, Math.min(2, parseInt(el.innerText) + amt));
+        update();
+    }
+
+    const bc = new BroadcastChannel('splatoon3_tournament_sync');
+    function update() {
+        const lv = document.getElementById('leftTeamSelect').value;
+        const rv = document.getElementById('rightTeamSelect').value;
+        bc.postMessage({
+            L_Name: lv !== "none" ? tournamentData[lv].name : "対戦チームA",
+            L_M: lv !== "none" ? tournamentData[lv].members : ["選手A1","選手A2","選手A3","選手A4"],
+            R_Name: rv !== "none" ? tournamentData[rv].name : "対戦チームB",
+            R_M: rv !== "none" ? tournamentData[rv].members : ["選手B1","選手B2","選手B3","選手B4"],
+            L_S: parseInt(document.getElementById('leftScore').innerText),
+            R_S: parseInt(document.getElementById('rightScore').innerText)
+        });
+    }
+</script>
+</body>
+</html>
