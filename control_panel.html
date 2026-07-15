@@ -141,7 +141,7 @@
             bc.postMessage({
                 type: 'TOURNAMENT_WIN',
                 match: matchKey, // 'M1', 'M2', 'M3' などの形で送信
-                winner: winnerSide,
+                w: winnerSide,
                 winnerName: winnerName,
                 loserName: winnerSide === 'left' ? rightName : leftName
             });
