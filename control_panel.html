@@ -34,12 +34,12 @@
     <div style="background-color: #2d2d2d; padding: 12px; border-radius: 8px; border: 1px solid #444;">
         <label>進行中の試合を選択して勝敗を確定</label>
         <select id="matchSelect" style="margin-bottom: 10px;">
-            <option value="W1">【勝者側】1回戦 (ボム破壊俊足寺 vs にぶいち)</option>
-            <option value="W2">【勝者側】1回戦 (チーム・ガンマ vs チーム・デルタ)</option>
-            <option value="W_Final">【勝者側】決勝戦</option>
-            <option value="L1">【敗者側】1回戦</option>
-            <option value="L_Final">【敗者側】決勝戦</option>
-            <option value="Grand_Final">【総合】グランドファイナル</option>
+            <option value="W1">【M1】</option>
+            <option value="W2">【M2】</option>
+            <option value="W_Final">【M3】M1_Wi vs M2_Wi</option>
+            <option value="L1">【M4】M1_Lo vs M2_Lo</option>
+            <option value="L_Final">【M5】M3_Lo vs M4_Wi</option>
+            <option value="Grand_Final">【M6】M3_Wi vs M5_Wi</option>
         </select>
         <div style="display: flex; gap: 10px;">
             <button style="background-color: #12aa00; margin-bottom: 0;" onclick="winMatch('left')">← 左チームの勝利確定</button>
