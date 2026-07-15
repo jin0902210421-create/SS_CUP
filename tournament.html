@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ダブルエリミネーション トーナメント表</title>
+    <style>
+        @import url('https://googleapis.com');
+        
+        body {
+            margin: 0; padding: 40px;
+            width: 1920px; height: 1080px;
+            box-sizing: border-box;
+            background-color: rgba(20, 20, 20, 0.95); /* 高級感のある黒背景。透過にしたい場合は transparent に */
+            color: #fff;
+            font-family: 'Noto Sans JP', sans-serif;
+            overflow: hidden;
+        }
+
+        .title { text-align: center; font-size: 42px; color: #ff007f; text-shadow: 0 0 10px rgba(25,0,127,0.5); margin-bottom: 40px; }
+        .tournament-wrapper { display: flex; justify-content: space-around; margin-top: 20px; }
+        .bracket-section { width: 45%; background: rgba(40,40,40,0.6); padding: 20px; border-radius: 12px; border: 1px solid #444; position: relative; }
+        .section-title { font-size: 24px; color: #00ffcc; border-bottom: 2px solid #00ffcc; padding-bottom: 5px; margin-bottom: 30px; text-transform: uppercase; }
+
+        /* マッチ（対戦枠）の基本デザイン */
+        .match-box { background: #1a1a1a; border: 2px solid #555; width: 280px; border-radius: 6px; margin-bottom: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: relative; }
+        .match-box.active { border-color: #ff007f; }
+        .match-title { font-size: 11px; color: #aaa; background: #2a2d32; padding: 3px 8px; border-radius: 4px 4px 0 0; }
+        .team-slot { padding: 8px 12px; font-size: 18px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; white-space: nowrap; overflow: hidden; }
+        .team-slot:last-child { border-bottom: none; }
+        .team-text { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 🔴 動的な勝利ルート（赤い線）のベース */
+        .line { position: absolute; background-color: #555; z-index: 1; transition: background-color 0.3s ease; }
+        .line.red { background-color: #ff007f; box-shadow: 0 0 8px #ff007f; }
+
+        /* 配置用レイアウトクラス（簡易グリッド） */
+        .flex-col { display: flex; flex-direction: column; justify-content: space-around; }
+        .flex-row { display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+    <div class="title">第3回 SS杯 ダブルエリミネーション</div>
+
+    <div class="tournament-wrapper">
+        <!-- 🟩 勝者側（Winners）ブラケット -->
+        <div class="bracket-section">
+            <div class="section-title">Winners Bracket (勝者側)</div>
+            <div class="flex-row" style="height: 600px;">
+                <!-- 1回戦 -->
+                <div class="flex-col">
+                    <div class="match-box" id="box_W1">
+                        <div class="match-title">勝者側 1回戦 [M1]</div>
+                        <div class="team-slot" id="W1_T1"><span class="team-text">ボム破壊俊足寺</span></div>
+                        <div class="team-slot" id="W1_T2"><span class="team-text">にぶいち</span></div>
+                    </div>
+                    <div class="match-box" id="box_W2">
+                        <div class="match-title">勝者側 1回戦 [M2]</div>
+                        <div class="team-slot" id="W2_T1"><span class="team-text">チーム・ガンマ</span></div>
+                        <div class="team-slot" id="W2_T2"><span class="team-text">チーム・デルタ</span></div>
+                    </div>
+                </div>
+                <!-- 決勝戦 -->
+                <div class="flex-col">
+                    <div class="match-box" id="box_W_Final" style="margin-left: 50px;">
+                        <div class="match-title">勝者側 決勝 [M4]</div>
+                        <div class="team-slot" id="W_Final_T1"><span class="team-text">? (M1勝者)</span></div>
+                        <div class="team-slot" id="W_Final_T2"><span class="team-text">? (M2勝者)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 手動で配置する接続線（一例として簡易的にCSSで定義して赤線化を可能にします） -->
+            <div class="line" id="line_W1_win" style="top: 135px; left: 310px; width: 60px; height: 4px;"></div>
+            <div class="line" id="line_W2_win" style="top: 435px; left: 310px; width: 60px; height: 4px;"></div>
+        </div>
+
+        <!-- 🟪 敗者側（Losers）＆ グランドファイナル -->
+        <div class="bracket-section">
+            <div class="section-title">Losers & Grand Final (敗者側・総合決勝)</div>
+            <div class="flex-row" style="height: 600px;">
+                <!-- 敗者側1回戦 -->
+                <div class="flex-col">
+                    <div class="match-box" id="box_L1">
+                        <div class="match-title">敗者側 1回戦 [M3]</div>
+                        <div class="team-slot" id="L1_T1"><span class="team-text">? (M1敗者)</span></div>
+                        <div class="team-slot" id="L1_T2"><span class="team-text">? (M2敗者)</span></div>
+                    </div>
+                    <div class="match-box" id="box_L_Final">
+                        <div class="match-title">敗者側 決勝 [M5]</div>
+                        <div class="team-slot" id="L_Final_T1"><span class="team-text">? (M3勝者)</span></div>
+                        <div class="team-slot" id="L_Final_T2"><span class="team-text">? (M4敗者)</span></div>
+                    </div>
+                </div>
+                <!-- グランドファイナル -->
+                <div class="flex-col">
+                    <div class="match-box" id="box_Grand_Final" style="margin-left: 50px;">
+                        <div class="match-title">グランドファイナル [M6]</div>
+                        <div class="team-slot" id="GF_T1"><span class="team-text">? (M4勝者)</span></div>
+                        <div class="team-slot" id="GF_T2"><span class="team-text">? (M5勝者)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 大会のトーナメント進行状況を記録する内部メモリ
+        let tournamentState = {
+            W1: { winner: null, t1: "ボム破壊俊足寺", t2: "にぶいち" },
+            W2: { winner: null, t1: "チーム・ガンマ", t2: "チーム・デルタ" },
+            W_Final: { winner: null, t1: "?", t2: "?" },
+            L1: { winner: null, t1: "?", t2: "?" },
+            L_Final: { winner: null, t1: "?", t2: "?" },
+            Grand_Final: { winner: null, t1: "?", t2: "?" }
+        };
+
+        // 操作パネルからの勝敗確定の合図（信号）をキャッチする
+        const bc = new BroadcastChannel('splatoon3_tournament_sync');
+        bc.onmessage = (event) => {
+            const d = event.data;
+            if (d.type === 'TOURNAMENT_WIN') {
+                processMatchResult(d.match, d.winner, d.winnerName, d.loserName);
+            }
+        };
+
+        // 勝敗が決まったときの進行ロジック
+        function processMatchResult(matchKey, winnerSide, winnerName, loserName) {
+            tournamentState[matchKey].winner = winnerSide;
+            
+            // 🔴 1. 勝ったチームの枠の線を赤く光らせる（視覚的演出）
+            if(matchKey === 'W1') {
+                document.getElementById('line_W1_win').classList.add('red');
+                tournamentState.W_Final.t1 = winnerName; // 勝者決勝へ進出
+                tournamentState.L1.t1 = loserName;      // 敗者は敗者側1回戦へ
+            }
+            if(matchKey === 'W2') {
+                document.getElementById('line_W2_win').classList.add('red');
+                tournamentState.W_Final.t2 = winnerName; // 勝者決勝へ進出
+                tournamentState.L1.t2 = loserName;      // 敗者は敗者側1回戦へ
+            }
+            if(matchKey === 'W_Final') {
+                tournamentState.Grand_Final.t1 = winnerName; // 総合決勝へ
+                tournamentState.L_Final.t2 = loserName;      // 敗者は敗者決勝へ
+            }
+            if(matchKey === 'L1') {
+                tournamentState.L_Final.t1 = winnerName; // 敗者決勝へ
+            }
+            if(matchKey === 'L_Final') {
+                tournamentState.Grand_Final.t2 = winnerName; // 総合決勝へ
+            }
+
+            // 🔄 2. 画面上のチーム名テキストを最新状態に書き換える
+            refreshTournamentDOM();
+        }
+
+        function refreshTournamentDOM() {
+            // 各スロットの文字をアップデート
+            document.getElementById('W_Final_T1').children[0].innerText = tournamentState.W_Final.t1;
+            document.getElementById('W_Final_T2').children[0].innerText = tournamentState.W_Final.t2;
+            document.getElementById('L1_T1').children[0].innerText = tournamentState.L1.t1;
+            document.getElementById('L1_T2').children[0].innerText = tournamentState.L1.t2;
+            document.getElementById('L_Final_T1').children[0].innerText = tournamentState.L_Final.t1;
+            document.getElementById('L_Final_T2').children[0].innerText = tournamentState.L_Final.t2;
+            document.getElementById('GF_T1').children[0].innerText = tournamentState.Grand_Final.t1;
+            document.getElementById('GF_T2').children[0].innerText = tournamentState.Grand_Final.t2;
+        }
+    </script>
+</body>
+</html>
