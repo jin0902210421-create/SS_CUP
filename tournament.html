@@ -69,15 +69,15 @@
         .road-line.w-run { background-color: #24e000; box-shadow: 0 0 15px #24e000, 0 0 5px #24e000; z-index: 2; }
         .road-line.l-run { background-color: #ff007f; box-shadow: 0 0 15px #ff007f, 0 0 5px #ff007f; z-index: 2; }
         
-        /* 📍 各枠の絶対座標をピタッと固定 */
+        /* 📍 お送りいただいたイメージ画像の通りに座標を完全固定 */
         #box_M1 { top: 820px; left: 160px; } 
         #box_M2 { top: 820px; left: 560px; } 
         #box_M3 { top: 580px; left: 360px; } 
         #box_M4 { top: 820px; left: 1160px; }
         #box_M5 { top: 580px; left: 1360px; }
         #box_M6 { top: 340px; left: 860px; } 
-        #box_M7 { top: 140px; left: 860px; transition: left 0.3s ease; } /* ⑥（総合決勝1試合目） */
-        #box_M7_Reset { top: 140px; left: 1120px; display: none; } /* ⑦ リセット戦枠 */
+        #box_M7 { top: 140px; left: 860px; transition: left 0.3s ease; } /* ⑥（総合決勝1試合目：初期位置は真ん中） */
+        #box_M7_Reset { top: 140px; left: 1120px; display: none; } /* ⑦ リセット決勝枠（★デフォルト完全非表示） */
     </style>
 </head>
 <body>
@@ -119,13 +119,14 @@
     // スプレッドシート名簿の自動初期ロード（CORS回避・CSVバイパス対応版）
     async function initTournament() {
         try {
-            const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`);
+            const res = await fetch(`https://google.com{SPREADSHEET_ID}/export?format=csv&gid=0`);
             const text = await res.text(); const lines = text.split('\n'); let teams = [];
             for(let i = 1; i <= 4; i++) {
                 if(lines[i]) { const name = lines[i].split(',')[0].trim().replace(/^"|"$/g, ''); teams.push(name || `チーム${i}`); }
                 else { teams.push(`チーム${i}`); }
             }
-            tState.M1.t1 = teams[0]; tState.M1.t2 = teams[1]; tState.M2.t1 = teams[2]; tState.M2.t2 = teams[3];
+            tState.M1.t1 = teams[0]; tState.M1.t2 = teams[1];
+            tState.M2.t1 = teams[2]; tState.M2.t2 = teams[3];
             refreshDOM();
         } catch (e) { console.error(e); }
     }
@@ -174,16 +175,17 @@
             tState.M7.t2 = wName;
         }
         if(match === 'M7') {
-            // 🚨 ご指摘に基づき完全修正：⑥（総合決勝1試合目）の分岐ロジック
+            // 🚨 【リセット分岐ロジック完全対応】
             if (side === 'left') {
                 // 勝者側(W)チームが勝った場合 ➜ 1発優勝のため、⑦は出さずに終了
                 document.getElementById('box_M7').classList.add('w-win-active');
-                document.getElementById('box_M7_Reset').style.display = 'none';
+                document.getElementById('box_M7_Reset').style.display = 'none'; // ⑦は非表示のまま
+                document.getElementById('box_M7').style.left = '860px';          // ⑥の枠は真ん中のまま固定
             } else {
                 // 敗者側(L)チームが勝った場合 ➜ 【⑦リセット戦が発生！】
                 document.getElementById('box_M7').classList.add('l-win-active');
-                document.getElementById('box_M7_Reset').style.display = 'block'; // ⑦の枠を出現させる
-                document.getElementById('box_M7').style.left = '700px';          // ⑥の枠を左にずらす
+                document.getElementById('box_M7_Reset').style.display = 'block'; // ⑦の枠をここで初めて出現させる
+                document.getElementById('box_M7').style.left = '700px';          // ⑥の枠を左にスッとスライドさせる
                 tState.M7_Reset.t1 = wName; tState.M7_Reset.t2 = lName;
             }
         }
