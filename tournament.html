@@ -119,7 +119,7 @@
     // スプレッドシート名簿の自動初期ロード（CORS回避・CSVバイパス対応版）
     async function initTournament() {
         try {
-            const res = await fetch(`https://google.com{SPREADSHEET_ID}/export?format=csv&gid=0`);
+            const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`);
             const text = await res.text(); const lines = text.split('\n'); let teams = [];
             for(let i = 1; i <= 4; i++) {
                 if(lines[i]) { const name = lines[i].split(',')[0].trim().replace(/^"|"$/g, ''); teams.push(name || `チーム${i}`); }
