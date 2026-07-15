@@ -28,6 +28,24 @@
         <div class="team-box bravo"><label>右チーム（ピンク）</label><select id="rightTeamSelect" onchange="update()"></select><div class="score-control"><button class="score-btn" onclick="change('right', -1)">-</button><div class="score-display" id="rightScore">0</div><button class="score-btn" onclick="change('right', 1)">+</button></div></div>
     </div>
     <div class="status-text" id="loadStatus">スプレッドシート同期中...</div>
+
+    <!-- 🟢 追加：トーナメント勝敗判定エリア -->
+    <div class="area-title" style="margin-top: 15px;">2. ダブルエリミネーション勝敗確定（BO3）</div>
+    <div style="background-color: #2d2d2d; padding: 12px; border-radius: 8px; border: 1px solid #444;">
+        <label>進行中の試合を選択して勝敗を確定</label>
+        <select id="matchSelect" style="margin-bottom: 10px;">
+            <option value="W1">【勝者側】1回戦 (ボム破壊俊足寺 vs にぶいち)</option>
+            <option value="W2">【勝者側】1回戦 (チーム・ガンマ vs チーム・デルタ)</option>
+            <option value="W_Final">【勝者側】決勝戦</option>
+            <option value="L1">【敗者側】1回戦</option>
+            <option value="L_Final">【敗者側】決勝戦</option>
+            <option value="Grand_Final">【総合】グランドファイナル</option>
+        </select>
+        <div style="display: flex; gap: 10px;">
+            <button style="background-color: #12aa00; margin-bottom: 0;" onclick="winMatch('left')">← 左チームの勝利確定</button>
+            <button style="background-color: #ff007f; margin-bottom: 0;" onclick="winMatch('right')">右チームの勝利確定 →</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -96,6 +114,7 @@
         const lv = document.getElementById('leftTeamSelect').value;
         const rv = document.getElementById('rightTeamSelect').value;
         bc.postMessage({
+            type: 'MATCH_UPDATE',
             L_Name: lv !== "none" ? tournamentData[lv].name : "対戦チームA",
             L_M: lv !== "none" ? tournamentData[lv].members : ["選手A1","選手A2","選手A3","選手A4"],
             R_Name: rv !== "none" ? tournamentData[rv].name : "対戦チームB",
@@ -103,6 +122,31 @@
             L_S: parseInt(document.getElementById('leftScore').innerText),
             R_S: parseInt(document.getElementById('rightScore').innerText)
         });
+    }
+
+    // 🟢 追加：勝敗が確定したボタンを押したときの処理
+    function winMatch(winnerSide) {
+        const matchKey = document.getElementById('matchSelect').value;
+        const lv = document.getElementById('leftTeamSelect').value;
+        const rv = document.getElementById('rightTeamSelect').value;
+
+        if (lv === "none" || rv === "none") return alert("対戦チームが選択されていません");
+
+        const leftName = tournamentData[lv].name;
+        const rightName = tournamentData[rv].name;
+        const winnerName = winnerSide === 'left' ? leftName : rightName;
+
+        if (confirm(`${winnerName} の勝利で確定し、トーナメント表を更新しますか？`)) {
+            // トーナメント画面（別ソース）へ勝敗の信号を送信
+            bc.postMessage({
+                type: 'TOURNAMENT_WIN',
+                match: matchKey,
+                winner: winnerSide, // 'left' または 'right'
+                winnerName: winnerName,
+                loserName: winnerSide === 'left' ? rightName : leftName
+            });
+            alert("トーナメント表に勝敗を反映しました！試合間シーンを確認してください。");
+        }
     }
 </script>
 </body>
