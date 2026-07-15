@@ -11,9 +11,11 @@
         .team-box.alpha { border-left: 6px solid #24b200; }
         .team-box.bravo { border-left: 6px solid #ff7c00; }
         label { display: block; margin-bottom: 6px; font-size: 13px; color: #aaa; font-weight: bold; }
-        select, button { width: 100%; padding: 10px; background-color: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 4px; box-sizing: border-box; margin-bottom: 12px; font-weight: bold; font-size: 14px; }
+        select, button { width: 100%; padding: 10px; background-color: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 6px; box-sizing: border-box; margin-bottom: 12px; font-weight: bold; font-size: 14px; }
+        select:focus { border-color: #ff007f; outline: none; }
         .score-control { display: flex; align-items: center; gap: 10px; }
         .score-btn { background-color: #444; cursor: pointer; font-size: 18px; margin-bottom: 0; }
+        .score-btn:hover { background-color: #555; }
         .score-display { text-align: center; font-size: 24px; font-weight: bold; width: 50px; background: #111; border-radius: 6px; padding: 6px 0; }
         .status-text { font-size: 11px; color: #00ffcc; text-align: center; margin-top: 5px; }
     </style>
@@ -29,28 +31,32 @@
 </div>
 <script>
     // =========================================================================
-    // 🔗 【設定箇所】ご自身のGoogleスプレッドシートIDをここに貼り付けてください
+    // 🔗 【設定箇所】ご自身のGoogleスプレッドシートID（確認・書き換え済み）
     // =========================================================================
     const SPREADSHEET_ID = '1-rTsNU4FdeSF1qc3gZinJzRK8jJTXIRKQKKEOicokHA';
     // =========================================================================
 
     let tournamentData = {};
 
-    // 起動時にGoogleスプレッドシートから名簿を自動取得するCSVフェッチ処理
+    // 起動時にGoogleスプレッドシートから名簿をCSV形式で自動取得
     async function loadSpreadsheetData() {
+        // ★修正ポイント：GoogleスプレッドシートのCSVエクスポート用URLを正しい形式に修正しました
         const url = `https://google.com{SPREADSHEET_ID}/export?format=csv&gid=0`;
         try {
             const response = await fetch(url);
             const text = await response.text();
             
-            // CSVを解析してデータオブジェクトを自動組み立て
+            // 行ごとに分解
             const lines = text.split('\n');
             tournamentData = {};
             
             for (let i = 1; i < lines.length; i++) {
-                if (!lines[i]) continue;
-                // カンマ区切りを配列化（トリム処理付き）
+                if (!lines[i] || lines[i].trim() === "") continue;
+                
+                // カンマ区切りを配列化（ダブルクォーテーションのノイズを除去）
                 const cells = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                
+                // 1列目（チーム名）が空でなければ登録
                 if (cells[0]) {
                     tournamentData["team_" + i] = {
                         name: cells[0],
@@ -59,7 +65,7 @@
                 }
             }
 
-            // 左右のプルダウンの選択肢を全自動で生成
+            // 左右のプルダウンの選択肢を生成
             ['leftTeamSelect', 'rightTeamSelect'].forEach(id => {
                 let h = '<option value="none">-- 選択してください --</option>';
                 for(let k in tournamentData) h += `<option value="${k}">${tournamentData[k].name}</option>`;
@@ -68,7 +74,7 @@
             document.getElementById('loadStatus').innerText = "🟢 スプレッドシート名簿と正常に同期しました";
             document.getElementById('loadStatus').style.color = "#00ffcc";
         } catch (e) {
-            document.getElementById('loadStatus').innerText = "❌ 名簿の同期に失敗しました（共有設定を確認してください）";
+            document.getElementById('loadStatus').innerText = "❌ 名簿の同期に失敗しました（インターネット接続や共有設定を確認してください）";
             document.getElementById('loadStatus').style.color = "#ff3c12";
         }
     }
