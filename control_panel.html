@@ -42,13 +42,15 @@
     // 起動時にGoogleスプレッドシートから名簿をCSV形式で自動取得
     async function loadSpreadsheetData() {
         // ★CORSブロックを100%回避するため、非公開共有でも通信できるCSVエクスポートURLに変更
-        const url = `https://google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=1`;
+        const url = `https://google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`;
         try {
             const response = await fetch(url);
             const text = await response.text();
+            console.log('text', text);
             
             // CSVデータを改行ごとに分解
             const lines = text.split('\n');
+            console.log('lines', lines);
             tournamentData = {};
             
             for (let i = 1; i < lines.length; i++) {
