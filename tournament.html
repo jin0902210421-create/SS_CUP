@@ -5,23 +5,29 @@
     <title>ダブルエリミネーション トーナメント表</title>
     <style>
         @import url('https://googleapis.com');
-        body { margin: 0; padding: 0; width: 1920px; height: 1080px; box-sizing: border-box; background-color: #121317; color: #fff; font-family: 'Noto Sans JP', sans-serif; overflow: hidden; position: relative; }
-        .tournament-title { position: absolute; top: 40px; left: 0; width: 1920px; text-align: center; font-size: 38px; color: #ff007f; text-shadow: 0 0 10px rgba(255,0,127,0.3); }
-        .match-card { position: absolute; width: 200px; background: #1f2226; border: 2px solid #444; border-radius: 6px; box-shadow: 0 6px 15px rgba(0,0,0,0.6); z-index: 10; }
-        .match-card.active { border-color: #ff007f; }
-        .match-num { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #ff007f; color: #fff; font-size: 13px; padding: 1px 8px; border-radius: 10px; border: 1px solid #fff; font-weight: bold; }
-        .slot { padding: 8px; font-size: 14px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid #2d3139; color: #fff; font-weight: bold; }
-        .slot:last-child { border-bottom: none; border-radius: 0 0 4px 4px; }
-        .slot.win-highlight { color: #00ffcc; text-shadow: 0 0 5px #00ffcc; }
-        .road-line { position: absolute; background-color: #3a3f47; z-index: 1; transition: background-color 0.2s; }
-        .road-line.red { background-color: #ff007f; box-shadow: 0 0 10px #ff007f; z-index: 2; }
-        #box_M1 { top: 820px; left: 160px; }
-        #box_M2 { top: 820px; left: 560px; }
-        #box_M4 { top: 820px; left: 1160px; }
-        #box_M3 { top: 580px; left: 360px; }
-        #box_M5 { top: 580px; left: 1360px; }
-        #box_M6 { top: 340px; left: 860px; }
-        #box_M7 { top: 140px; left: 860px; }
+        body { margin:0; padding:0; width:1920px; height:1080px; box-sizing:border-box; background-color:#0b0c10; color:#fff; font-family:'Noto Sans JP',sans-serif; overflow:hidden; position:relative; }
+        .tournament-title { position:absolute; top:40px; left:0; width:1920px; text-align:center; font-size:42px; color:#fff; text-shadow:0 0 10px rgba(0,255,204,0.3); font-weight:bold; }
+        .match-card { position:absolute; width:220px; background:#1b1d24; border:2px solid #3a3f4d; border-radius:8px; box-shadow:0 8px 25px rgba(0,0,0,0.7); z-index:10; transition:all 0.3s; }
+        .match-num { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:#3a3f4d; color:#fff; font-size:12px; padding:1px 8px; border-radius:10px; border:1px solid #555; font-weight:bold; }
+        /* 枠ごとの勝敗ハイライト */
+        .match-card.w-win-active { border-color:#24e000; box-shadow:0 0 15px rgba(36,224,0,0.3); }
+        .match-card.l-win-active { border-color:#ff007f; box-shadow:0 0 15px rgba(255,0,127,0.3); }
+        .slot { padding:10px; font-size:15px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-bottom:1px solid #282b35; color:#aaa; font-weight:bold; transition:all 0.3s; }
+        .slot:last-child { border-bottom:none; border-radius:0 0 6px 6px; }
+        /* 文字の見やすさ大幅アップ */
+        .slot.is-winner { color:#fff !important; background:rgba(255,255,255,0.05); }
+        .slot.is-loser { color:#4a4e5a !important; text-shadow:none !important; opacity:0.4; }
+        .left-winner { text-shadow:0 0 8px #24e000; color:#24e000 !important; }
+        .right-winner { text-shadow:0 0 8px #ff007f; color:#ff007f !important; }
+        
+        /* 🔴 接続線デザイン（12pxのネオン発光） */
+        .road-line { position:absolute; background-color:#23262f; z-index:1; transition:all 0.3s; border-radius:6px; }
+        .road-line.w-run { background-color:#24e000; box-shadow:0 0 15px #24e000, 0 0 5px #24e000; z-index:2; }
+        .road-line.l-run { background-color:#ff007f; box-shadow:0 0 15px #ff007f, 0 0 5px #ff007f; z-index:2; }
+        
+        #box_M1 { top:820px; left:160px; } #box_M2 { top:820px; left:560px; } #box_M4 { top:820px; left:1160px; }
+        #box_M3 { top:580px; left:360px; }  #box_M5 { top:580px; left:1360px; }
+        #box_M6 { top:340px; left:860px; }  #box_M7 { top:140px; left:860px; }
     </style>
 </head>
 <body>
@@ -34,18 +40,19 @@
     <div class="match-card" id="box_M6"><div class="match-num">⑥</div><div class="slot" id="M6_1">？ (③勝者)</div><div class="slot" id="M6_2">？ (⑤勝者)</div></div>
     <div class="match-card" id="box_M7"><div class="match-num">⑦</div><div class="slot" id="M7_1">？ (⑥勝者)</div><div class="slot" id="M7_2">？ (⑥敗者)</div></div>
 
-    <div class="road-line" id="line_M1_L" style="top: 720px; left: 260px; width: 4px; height: 100px;"></div>
-    <div class="road-line" id="line_M1_H" style="top: 720px; left: 260px; width: 200px; height: 4px;"></div>
-    <div class="road-line" id="line_M2_L" style="top: 720px; left: 660px; width: 4px; height: 100px;"></div>
-    <div class="road-line" id="line_M2_H" style="top: 720px; left: 460px; width: 200px; height: 4px;"></div>
-    <div class="road-line" id="line_M3_Go" style="top: 650px; left: 460px; width: 4px; height: 70px;"></div>
-    <div class="road-line" id="line_M3_Up" style="top: 480px; left: 460px; width: 4px; height: 100px;"></div>
-    <div class="road-line" id="line_M3_ToM6" style="top: 480px; left: 460px; width: 400px; height: 4px;"></div>
-    <div class="road-line" id="line_M4_Up" style="top: 720px; left: 1260px; width: 4px; height: 100px;"></div>
-    <div class="road-line" id="line_M4_ToM5" style="top: 720px; left: 1260px; width: 200px; height: 4px;"></div>
-    <div class="road-line" id="line_M5_Up" style="top: 480px; left: 1460px; width: 4px; height: 100px;"></div>
-    <div class="road-line" id="line_M5_ToM6" style="top: 480px; left: 1060px; width: 400px; height: 4px;"></div>
-    <div class="road-line" id="line_M6_Up" style="top: 240px; left: 960px; width: 4px; height: 100px;"></div>
+    <!-- コネクト配線（太さを12pxに強化） -->
+    <div class="road-line" id="line_M1_L" style="top:710px; left:264px; width:12px; height:110px;"></div>
+    <div class="road-line" id="line_M1_H" style="top:710px; left:264px; width:200px; height:12px;"></div>
+    <div class="road-line" id="line_M2_L" style="top:710px; left:664px; width:12px; height:110px;"></div>
+    <div class="road-line" id="line_M2_H" style="top:710px; left:464px; width:212px; height:12px;"></div>
+    <div class="road-line" id="line_M3_Go" style="top:650px; left:464px; width:12px; height:72px;"></div>
+    <div class="road-line" id="line_M3_Up" style="top:470px; left:464px; width:12px; height:114px;"></div>
+    <div class="road-line" id="line_M3_ToM6" style="top:470px; left:464px; width:408px; height:12px;"></div>
+    <div class="road-line" id="line_M4_Up" style="top:710px; left:1264px; width:12px; height:114px;"></div>
+    <div class="road-line" id="line_M4_ToM5" style="top:710px; left:1264px; width:208px; height:12px;"></div>
+    <div class="road-line" id="line_M5_Up" style="top:470px; left:1464px; width:12px; height:114px;"></div>
+    <div class="road-line" id="line_M5_ToM6" style="top:470px; left:1064px; width:412px; height:12px;"></div>
+    <div class="road-line" id="line_M6_Up" style="top:230px; left:964px; width:12px; height:114px;"></div>
 
 <script>
     const SPREADSHEET_ID = '1-rTsNU4FdeSF1qc3gZinJzRK8jJTXIRKQKKEOicokHA';
@@ -58,86 +65,77 @@
     async function initTournament() {
         try {
             const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`);
-            const text = await res.text();
-            const lines = text.split('\n');
-            let teams = [];
+            const text = await res.text(); const lines = text.split('\n'); let teams = [];
             for(let i = 1; i <= 4; i++) {
-                if(lines[i]) {
-                    const name = lines[i].split(',')[0].trim().replace(/^"|"$/g, '');
-                    teams.push(name || `チーム${i}`);
-                } else { teams.push(`チーム${i}`); }
+                if(lines[i]) { const name = lines[i].split(',')[0].trim().replace(/^"|"$/g, ''); teams.push(name || `チーム${i}`); }
+                else { teams.push(`チーム${i}`); }
             }
-            tState.M1.t1 = teams[0]; tState.M1.t2 = teams[1];
-            tState.M2.t1 = teams[2]; tState.M2.t2 = teams[3];
+            tState.M1.t1 = teams[0]; tState.M1.t2 = teams[1]; tState.M2.t1 = teams[2]; tState.M2.t2 = teams[3];
             refreshDOM();
         } catch (e) { console.error(e); }
     }
 
-        const bc = new BroadcastChannel('splatoon3_tournament_sync');
+    const bc = new BroadcastChannel('splatoon3_tournament_sync');
     bc.onmessage = (event) => {
         if (event.data.type === 'TOURNAMENT_WIN') {
             const d = event.data;
-            // ★超重要修正：届いた文字（m1など）をすべて大文字（M1）に強制変換し、エラーを100%永久に根絶します
-            const safeMatchKey = d.match.toUpperCase();
-            
-            // 管理パネルが「winner」と「w」のどちらで送ってきても受け取れるように補正
-            const safeWinnerSide = d.w || d.winner;
-            
-            processResult(safeMatchKey, safeWinnerSide, d.winnerName, d.loserName);
+            processResult(d.match.toUpperCase(), d.w || d.winner, d.winnerName, d.loserName);
         }
     };
 
     function processResult(match, side, wName, lName) {
-        // もしデータが存在しない変な文字が来ても、エラーを出さずに安全にスキップするガードを配置
-        if (!tState[match]) {
-            console.error("見つからない試合キーです:", match);
-            return;
-        }
-        
+        if (!tState[match]) return;
         tState[match].w = side;
         
+        // 勝者ルート(グリーン)と敗者ルート(ピンク)の光分け
         if(match === 'M1') {
-            document.getElementById('line_M1_L').classList.add('red');
-            document.getElementById('line_M1_H').classList.add('red');
-            document.getElementById('line_M3_Go').classList.add('red');
+            document.getElementById('box_M1').classList.add('w-win-active');
+            ['line_M1_L','line_M1_H','line_M3_Go'].forEach(id => document.getElementById(id).classList.add('w-run'));
             tState.M3.t1 = wName; tState.M4.t1 = lName;
         }
         if(match === 'M2') {
-            document.getElementById('line_M2_L').classList.add('red');
-            document.getElementById('line_M2_H').classList.add('red');
-            document.getElementById('line_M3_Go').classList.add('red');
+            document.getElementById('box_M2').classList.add('w-win-active');
+            ['line_M2_L','line_M2_H','line_M3_Go'].forEach(id => document.getElementById(id).classList.add('w-run'));
             tState.M3.t2 = wName; tState.M4.t2 = lName;
         }
         if(match === 'M3') {
-            document.getElementById('line_M3_Up').classList.add('red');
-            document.getElementById('line_M3_ToM6').classList.add('red');
+            document.getElementById('box_M3').classList.add('w-win-active');
+            ['line_M3_Up','line_M3_ToM6'].forEach(id => document.getElementById(id).classList.add('w-run'));
             tState.M6.t1 = wName; tState.M5.t2 = lName;
         }
         if(match === 'M4') {
-            document.getElementById('line_M4_Up').classList.add('red');
-            document.getElementById('line_M4_ToM5').classList.add('red');
+            document.getElementById('box_M4').classList.add('l-win-active');
+            ['line_M4_Up','line_M4_ToM5'].forEach(id => document.getElementById(id).classList.add('l-run'));
             tState.M5.t1 = wName;
         }
         if(match === 'M5') {
-            document.getElementById('line_M5_Up').classList.add('red');
-            document.getElementById('line_M5_ToM6').classList.add('red');
+            document.getElementById('box_M5').classList.add('l-win-active');
+            ['line_M5_Up','line_M5_ToM6'].forEach(id => document.getElementById(id).classList.add('l-run'));
             tState.M6.t2 = wName;
         }
         if(match === 'M6') {
-            document.getElementById('line_M6_Up').classList.add('red');
+            document.getElementById('box_M6').classList.add('l-win-active');
+            document.getElementById('line_M6_Up').classList.add('l-run');
             tState.M7.t1 = wName; tState.M7.t2 = lName;
+        }
+        if(match === 'M7') {
+            document.getElementById('box_M7').classList.add('w-win-active');
         }
         refreshDOM();
     }
 
     function refreshDOM() {
         for(let key in tState) {
-            document.getElementById(`${key}_1`).innerText = tState[key].t1;
-            document.getElementById(`${key}_2`).innerText = tState[key].t2;
+            const s1 = document.getElementById(`${key}_1`);
+            const s2 = document.getElementById(`${key}_2`);
+            s1.innerText = tState[key].t1; s2.innerText = tState[key].t2;
+            
             if(tState[key].w) {
-                // 勝ったマスの文字色ハイライト処理
-                const slotId = `${key}_${tState[key].w === 'left' ? '1' : '2'}`;
-                document.getElementById(slotId).classList.add('win-highlight');
+                const winSlot = tState[key].w === 'left' ? s1 : s2;
+                const loseSlot = tState[key].w === 'left' ? s2 : s1;
+                
+                winSlot.className = `slot is-winner ${key==='M4'||key==='M5'||key==='M6'?'right-winner':'left-winner'}`;
+                loseSlot.className = "slot is-loser";
             }
         }
     }
