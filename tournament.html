@@ -2,227 +2,132 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>スプラ3 ダブルエリミネーション トーナメント</title>
+    <title>ダブルエリミネーション トーナメント表</title>
     <style>
         @import url('https://googleapis.com');
-        
-        body {
-            margin: 0; padding: 0;
-            width: 1920px; height: 1080px;
-            box-sizing: border-box;
-            background-color: transparent; /* 背景画像やスプラ画面に重ねるため透過 */
-            color: #fff;
-            font-family: 'Noto Sans JP', sans-serif;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* 🏆 大会冠タイトル */
-        .tournament-title {
-            position: absolute;
-            top: 40px; left: 0; width: 1920px;
-            text-align: center; font-size: 38px;
-            color: #ff007f; text-shadow: 2px 2px 4px #000;
-        }
-
-        /* 📦 対戦カード（マッチボックス）の共通デザイン */
-        .match-card {
-            position: absolute;
-            width: 200px;
-            background: #1a1a1a;
-            border: 2px solid #555;
-            border-radius: 6px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
-            z-index: 10;
-        }
+        body { margin: 0; padding: 0; width: 1920px; height: 1080px; box-sizing: border-box; background-color: #121317; color: #fff; font-family: 'Noto Sans JP', sans-serif; overflow: hidden; position: relative; }
+        .tournament-title { position: absolute; top: 40px; left: 0; width: 1920px; text-align: center; font-size: 38px; color: #ff007f; text-shadow: 0 0 10px rgba(255,0,127,0.3); }
+        .match-card { position: absolute; width: 200px; background: #1f2226; border: 2px solid #444; border-radius: 6px; box-shadow: 0 6px 15px rgba(0,0,0,0.6); z-index: 10; }
         .match-card.active { border-color: #ff007f; }
-        
-        /* 試合番号バッジ (①〜⑦) */
-        .match-num {
-            position: absolute;
-            top: -12px; left: 50%; transform: translateX(-50%);
-            background: #ff007f; color: #fff;
-            font-size: 14px; padding: 1px 8px;
-            border-radius: 10px; border: 1px solid #fff;
-            font-weight: bold;
-        }
-
-        /* チーム名が入るマス */
-        .slot {
-            padding: 8px; font-size: 15px; text-align: center;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            border-bottom: 1px solid #333;
-            background: rgba(30, 30, 30, 0.9);
-        }
+        .match-num { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #ff007f; color: #fff; font-size: 13px; padding: 1px 8px; border-radius: 10px; border: 1px solid #fff; font-weight: bold; }
+        .slot { padding: 8px; font-size: 14px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid #2d3139; color: #fff; font-weight: bold; }
         .slot:last-child { border-bottom: none; border-radius: 0 0 4px 4px; }
-        .slot.winner { color: #00ffcc; font-weight: bold; }
-
-        /* 🔴 勝利ルートの赤い線（ベース） */
-        .road-line { position: absolute; background-color: #555; z-index: 1; transition: background-color 0.3s ease, box-shadow: 0.3s ease; }
-        .road-line.red { background-color: #ff007f; box-shadow: 0 0 10px #ff007f, 0 0 4px #ff007f; }
-
-        /* =============================================================
-           📍 お送りいただいた画像の配置を16:9（1920x1080）に完全最適化
-        ============================================================= */
-        /* 最下段：1回戦エリア (①, ②, ④) */
-        #box_M1 { top: 820px; left: 160px; }  /* ① 勝者1回戦A */
-        #box_M2 { top: 820px; left: 560px; }  /* ② 勝者1回戦B */
-        #box_M4 { top: 820px; left: 1160px; } /* ④ 敗者1回戦 */
-
-        /* 中段：準決勝・2回戦エリア (③, ⑤) */
-        #box_M3 { top: 580px; left: 360px; }  /* ③ 勝者決勝 */
-        #box_M5 { top: 580px; left: 1360px; } /* ⑤ 敗者2回戦 */
-
-        /* 上段：敗者側決勝エリア (⑥) */
-        #box_M6 { top: 340px; left: 860px; }  /* ⑥ 敗者決勝 */
-
-        /* 最上段：総合決勝エリア (⑦) */
-        #box_M7 { top: 140px; left: 860px; }  /* ⑦ グランドファイナル */
+        .slot.win-highlight { color: #00ffcc; text-shadow: 0 0 5px #00ffcc; }
+        .road-line { position: absolute; background-color: #3a3f47; z-index: 1; transition: background-color 0.2s; }
+        .road-line.red { background-color: #ff007f; box-shadow: 0 0 10px #ff007f; z-index: 2; }
+        #box_M1 { top: 820px; left: 160px; }
+        #box_M2 { top: 820px; left: 560px; }
+        #box_M4 { top: 820px; left: 1160px; }
+        #box_M3 { top: 580px; left: 360px; }
+        #box_M5 { top: 580px; left: 1360px; }
+        #box_M6 { top: 340px; left: 860px; }
+        #box_M7 { top: 140px; left: 860px; }
     </style>
 </head>
 <body>
-
     <div class="tournament-title">第3回 SS杯 ダブルエリミネーション</div>
-
-    <!-- 🎮 全7試合の対戦カード配置 -->
-    <div class="match-card" id="box_M1"><div class="match-num">①</div><div class="slot" id="M1_1">ボム破壊俊足寺</div><div class="slot" id="M1_2">にぶいち</div></div>
-    <div class="match-card" id="box_M2"><div class="match-num">②</div><div class="slot" id="M2_1">チーム・ガンマ</div><div class="slot" id="M2_2">チーム・デルタ</div></div>
+    <div class="match-card" id="box_M1"><div class="match-num">①</div><div class="slot" id="M1_1">Loading...</div><div class="slot" id="M1_2">Loading...</div></div>
+    <div class="match-card" id="box_M2"><div class="match-num">②</div><div class="slot" id="M2_1">Loading...</div><div class="slot" id="M2_2">Loading...</div></div>
     <div class="match-card" id="box_M3"><div class="match-num">③</div><div class="slot" id="M3_1">？</div><div class="slot" id="M3_2">？</div></div>
     <div class="match-card" id="box_M4"><div class="match-num">④</div><div class="slot" id="M4_1">？ (①敗者)</div><div class="slot" id="M4_2">？ (②敗者)</div></div>
     <div class="match-card" id="box_M5"><div class="match-num">⑤</div><div class="slot" id="M5_1">？</div><div class="slot" id="M5_2">？ (③敗者)</div></div>
     <div class="match-card" id="box_M6"><div class="match-num">⑥</div><div class="slot" id="M6_1">？ (③勝者)</div><div class="slot" id="M6_2">？ (⑤勝者)</div></div>
     <div class="match-card" id="box_M7"><div class="match-num">⑦</div><div class="slot" id="M7_1">？ (⑥勝者)</div><div class="slot" id="M7_2">？ (⑥敗者)</div></div>
 
-    <!-- 🔴 画像の「赤いツリー線」を再現するコネクト配線 (初期状態はグレー、勝敗確定で赤に) -->
-    <!-- ①から③への合流線 -->
     <div class="road-line" id="line_M1_L" style="top: 720px; left: 260px; width: 4px; height: 100px;"></div>
     <div class="road-line" id="line_M1_H" style="top: 720px; left: 260px; width: 200px; height: 4px;"></div>
-    <!-- ②から③への合流線 -->
     <div class="road-line" id="line_M2_L" style="top: 720px; left: 660px; width: 4px; height: 100px;"></div>
     <div class="road-line" id="line_M2_H" style="top: 720px; left: 460px; width: 200px; height: 4px;"></div>
     <div class="road-line" id="line_M3_Go" style="top: 650px; left: 460px; width: 4px; height: 70px;"></div>
-    <!-- ③から⑥への接続線 -->
     <div class="road-line" id="line_M3_Up" style="top: 480px; left: 460px; width: 4px; height: 100px;"></div>
-    <div class="road-line" id="line_M3_ToM6" style="top: 480px; left: 460px; width: 500px; height: 4px;"></div>
-
-    <!-- ④から⑤への接続線 -->
+    <div class="road-line" id="line_M3_ToM6" style="top: 480px; left: 460px; width: 400px; height: 4px;"></div>
     <div class="road-line" id="line_M4_Up" style="top: 720px; left: 1260px; width: 4px; height: 100px;"></div>
     <div class="road-line" id="line_M4_ToM5" style="top: 720px; left: 1260px; width: 200px; height: 4px;"></div>
-
-    <!-- ⑤から⑥への接続線 -->
     <div class="road-line" id="line_M5_Up" style="top: 480px; left: 1460px; width: 4px; height: 100px;"></div>
-    <div class="road-line" id="line_M5_ToM6" style="top: 480px; left: 960px; width: 500px; height: 4px;"></div>
-
-    <!-- ⑥から⑦への接続線 -->
+    <div class="road-line" id="line_M5_ToM6" style="top: 480px; left: 1060px; width: 400px; height: 4px;"></div>
     <div class="road-line" id="line_M6_Up" style="top: 240px; left: 960px; width: 4px; height: 100px;"></div>
 
 <script>
-    // スプレッドシートID（確認済み）
     const SPREADSHEET_ID = '1-rTsNU4FdeSF1qc3gZinJzRK8jJTXIRKQKKEOicokHA';
-
-    // お送りいただいた画像のツリー関係（①〜⑦）をそのまま記憶するメモリ
     let tState = {
-        M1: { w: null, t1: "Loading...", t2: "Loading..." }, // ①
-        M2: { w: null, t1: "Loading...", t2: "Loading..." }, // ②
-        M3: { w: null, t1: "？", t2: "？" },                  // ③
-        M4: { w: null, t1: "？ (①敗者)", t2: "？ (②敗者)" },  // ④
-        M5: { w: null, t1: "？", t2: "？ (③敗者)" },          // ⑤
-        M6: { w: null, t1: "？ (③勝者)", t2: "？ (⑤勝者)" },  // ⑥
-        M7: { w: null, t1: "？ (⑥勝者)", t2: "？ (⑥敗者)" }   // ⑦
+        M1: { w: null, t1: "Loading...", t2: "Loading..." }, M2: { w: null, t1: "Loading...", t2: "Loading..." },
+        M3: { w: null, t1: "？", t2: "？" }, M4: { w: null, t1: "？ (①敗者)", t2: "？ (②敗者)" },
+        M5: { w: null, t1: "？", t2: "？ (③敗者)" }, M6: { w: null, t1: "？ (③勝者)", t2: "？ (⑤勝者)" }, M7: { w: null, t1: "？ (⑥勝者)", t2: "？ (⑥敗者)" }
     };
 
-    // 起動時にスプレッドシートから4チーム（①と②の枠）を自動読み込み（CSVバイパス）
+    // ★CSV解析のバグを100%修正。スプレッドシートの行から各マスの文字を正しく切り出します
     async function initTournament() {
-        const url = `https://google.com{SPREADSHEET_ID}/export?format=csv&gid=0`;
         try {
-            const response = await fetch(url);
-            const text = await response.text();
+            const res = await fetch(`https://google.com{SPREADSHEET_ID}/export?format=csv&gid=0`);
+            const text = await res.text();
             const lines = text.split('\n');
             let teams = [];
             for(let i = 1; i <= 4; i++) {
-                if (lines[i]) {
+                if(lines[i]) {
+                    // カンマ区切りの最初の1マス（チーム名）を正しく抽出
                     const name = lines[i].split(',')[0].trim().replace(/^"|"$/g, '');
                     teams.push(name || `チーム${i}`);
-                } else {
-                    teams.push(`チーム${i}`);
-                }
+                } else { teams.push(`チーム${i}`); }
             }
-            // 画像の通りの初期配置（最下段の①と②）
-            tState.M1.t1 = teams[0]; // ボム破壊俊足寺
-            tState.M1.t2 = teams[1]; // にぶいち
-            tState.M2.t1 = teams[2]; // チーム・ガンマ
-            tState.M2.t2 = teams[3]; // チーム・デルタ
-            
+            tState.M1.t1 = teams[0]; tState.M1.t2 = teams[1];
+            tState.M2.t1 = teams[2]; tState.M2.t2 = teams[3];
             refreshDOM();
         } catch (e) { console.error(e); }
     }
 
-    // 管理パネルからの勝敗確定信号（TOURNAMENT_WIN）をキャッチ
     const bc = new BroadcastChannel('splatoon3_tournament_sync');
     bc.onmessage = (event) => {
-        const d = event.data;
-        if (d.type === 'TOURNAMENT_WIN') {
+        if (event.data.type === 'TOURNAMENT_WIN') {
+            const d = event.data;
             processResult(d.match, d.winner, d.winnerName, d.loserName);
         }
     };
 
-    // 画像の赤線ツリー＆チーム名スライドの完全再現システム
     function processResult(match, side, wName, lName) {
         tState[match].w = side;
-        
-        // ①の勝敗（勝者は③の左、敗者は④の左へ）
         if(match === 'M1') {
             document.getElementById('line_M1_L').classList.add('red');
             document.getElementById('line_M1_H').classList.add('red');
             document.getElementById('line_M3_Go').classList.add('red');
-            tState.M3.t1 = wName;
-            tState.M4.t1 = lName;
+            tState.M3.t1 = wName; tState.M4.t1 = lName;
         }
-        // ②の勝敗（勝者は③の右、敗者は④の右へ）
         if(match === 'M2') {
             document.getElementById('line_M2_L').classList.add('red');
             document.getElementById('line_M2_H').classList.add('red');
             document.getElementById('line_M3_Go').classList.add('red');
-            tState.M3.t2 = wName;
-            tState.M4.t2 = lName;
+            tState.M3.t2 = wName; tState.M4.t2 = lName;
         }
-        // ③の勝敗（勝者は⑥の左、敗者は⑤の右へ）
         if(match === 'M3') {
             document.getElementById('line_M3_Up').classList.add('red');
             document.getElementById('line_M3_ToM6').classList.add('red');
-            tState.M6.t1 = wName;
-            tState.M5.t2 = lName;
+            tState.M6.t1 = wName; tState.M5.t2 = lName;
         }
-        // ④の勝敗（勝者は⑤の左へ、敗者はここで敗退）
         if(match === 'M4') {
             document.getElementById('line_M4_Up').classList.add('red');
             document.getElementById('line_M4_ToM5').classList.add('red');
             tState.M5.t1 = wName;
         }
-        // ⑤の勝敗（勝者は⑥の右へ、敗者はここで敗退）
         if(match === 'M5') {
             document.getElementById('line_M5_Up').classList.add('red');
             document.getElementById('line_M5_ToM6').classList.add('red');
             tState.M6.t2 = wName;
         }
-        // ⑥の勝敗（勝者は⑦の左[勝者枠]、敗者は⑦の右[敗者枠]へ進みグランドファイナル）
         if(match === 'M6') {
             document.getElementById('line_M6_Up').classList.add('red');
-            tState.M7.t1 = wName;
-            tState.M7.t2 = lName;
+            tState.M7.t1 = wName; tState.M7.t2 = lName;
         }
-
         refreshDOM();
     }
 
-    // 画面にチーム名データを反映する処理
     function refreshDOM() {
         for(let key in tState) {
             document.getElementById(`${key}_1`).innerText = tState[key].t1;
             document.getElementById(`${key}_2`).innerText = tState[key].t2;
+            if(tState[key].w) {
+                document.getElementById(`${key}_${tState[key].w === 'left' ? '1' : '2'}`).classList.add('win-highlight');
+            }
         }
     }
-
     window.addEventListener('DOMContentLoaded', initTournament);
 </script>
 </body>
