@@ -83,7 +83,7 @@
     };
 
     function processResult(match, side, wName, lName) {
-        tState[match].winner = side; // これでエラーが出なくなります
+        tState[match].w = side; // これでエラーが出なくなります
         if(match === 'M1') {
             document.getElementById('line_M1_L').classList.add('red');
             document.getElementById('line_M1_H').classList.add('red');
@@ -122,9 +122,9 @@
         for(let key in tState) {
             document.getElementById(`${key}_1`).innerText = tState[key].t1;
             document.getElementById(`${key}_2`).innerText = tState[key].t2;
-            if(tState[key].winner) {
+            if(tState[key].w) {
                 // 勝ったマスの文字色ハイライト処理
-                const slotId = `${key}_${tState[key].winner === 'left' ? '1' : '2'}`;
+                const slotId = `${key}_${tState[key].w === 'left' ? '1' : '2'}`;
                 document.getElementById(slotId).classList.add('win-highlight');
             }
         }
