@@ -11,34 +11,69 @@
         .team-box.alpha { border-left: 6px solid #24b200; }
         .team-box.bravo { border-left: 6px solid #ff7c00; }
         label { display: block; margin-bottom: 6px; font-size: 13px; color: #aaa; font-weight: bold; }
-        select, button { width: 100%; padding: 10px; background-color: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 6px; box-sizing: border-box; margin-bottom: 12px; font-weight: bold; font-size: 14px; }
+        select, button { width: 100%; padding: 10px; background-color: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 4px; box-sizing: border-box; margin-bottom: 12px; font-weight: bold; font-size: 14px; }
         .score-control { display: flex; align-items: center; gap: 10px; }
         .score-btn { background-color: #444; cursor: pointer; font-size: 18px; margin-bottom: 0; }
         .score-display { text-align: center; font-size: 24px; font-weight: bold; width: 50px; background: #111; border-radius: 6px; padding: 6px 0; }
+        .status-text { font-size: 11px; color: #00ffcc; text-align: center; margin-top: 5px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="area-title">🏆 スプラ3 大会運営コントロールパネル</div>
+    <div class="area-title">🏆 スプラ3 大会運営コントロールパネル (Sheet連動版)</div>
     <div class="team-setup">
         <div class="team-box alpha"><label>左チーム（緑）</label><select id="leftTeamSelect" onchange="update()"></select><div class="score-control"><button class="score-btn" onclick="change('left', -1)">-</button><div class="score-display" id="leftScore">0</div><button class="score-btn" onclick="change('left', 1)">+</button></div></div>
         <div class="team-box bravo"><label>右チーム（ピンク）</label><select id="rightTeamSelect" onchange="update()"></select><div class="score-control"><button class="score-btn" onclick="change('right', -1)">-</button><div class="score-display" id="rightScore">0</div><button class="score-btn" onclick="change('right', 1)">+</button></div></div>
     </div>
+    <div class="status-text" id="loadStatus">スプレッドシート同期中...</div>
 </div>
 <script>
-    const tournamentData = {
-        "team_1": { name: "ボム破壊俊足寺", members: ["雨深にと", "紅巴める", "紫虎ユラ", "神守タロー"] },
-        "team_2": { name: "にぶいち", members: ["ちぎりぱんつ", "星羊オメガ", "ムノキワ", "しおん"] },
-        "team_3": { name: "ノヴァ後ジェッパ時々スピってる", members: ["橙乃うか", "小羽音いこい", "AKITO", "雪柳ルリ"] }
-    };
+    // =========================================================================
+    // 🔗 【設定箇所】ご自身のGoogleスプレッドシートIDをここに貼り付けてください
+    // =========================================================================
+    const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+    // =========================================================================
 
-    window.addEventListener('DOMContentLoaded', () => {
-        ['leftTeamSelect', 'rightTeamSelect'].forEach(id => {
-            let h = '<option value="none">-- 選択してください --</option>';
-            for(let k in tournamentData) h += `<option value="${k}">${tournamentData[k].name}</option>`;
-            document.getElementById(id).innerHTML = h;
-        });
-    });
+    let tournamentData = {};
+
+    // 起動時にGoogleスプレッドシートから名簿を自動取得するCSVフェッチ処理
+    async function loadSpreadsheetData() {
+        const url = `https://google.com{SPREADSHEET_ID}/export?format=csv&gid=0`;
+        try {
+            const response = await fetch(url);
+            const text = await response.text();
+            
+            // CSVを解析してデータオブジェクトを自動組み立て
+            const lines = text.split('\n');
+            tournamentData = {};
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue;
+                // カンマ区切りを配列化（トリム処理付き）
+                const cells = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                if (cells[0]) {
+                    tournamentData["team_" + i] = {
+                        name: cells[0],
+                        members: [cells[1] || "", cells[2] || "", cells[3] || "", cells[4] || ""]
+                    };
+                }
+            }
+
+            // 左右のプルダウンの選択肢を全自動で生成
+            ['leftTeamSelect', 'rightTeamSelect'].forEach(id => {
+                let h = '<option value="none">-- 選択してください --</option>';
+                for(let k in tournamentData) h += `<option value="${k}">${tournamentData[k].name}</option>`;
+                document.getElementById(id).innerHTML = h;
+            });
+            document.getElementById('loadStatus').innerText = "🟢 スプレッドシート名簿と正常に同期しました";
+            document.getElementById('loadStatus').style.color = "#00ffcc";
+        } catch (e) {
+            document.getElementById('loadStatus').innerText = "❌ 名簿の同期に失敗しました（共有設定を確認してください）";
+            document.getElementById('loadStatus').style.color = "#ff3c12";
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadSpreadsheetData);
 
     function change(side, amt) {
         let el = document.getElementById(`${side}Score`);
@@ -46,7 +81,6 @@
         update();
     }
 
-    // ★今回の最重要改善：別ブラウザでも100%データを強制同期させる「サーバー不要通信」を使用
     const bc = new BroadcastChannel('splatoon3_tournament_sync');
     function update() {
         const lv = document.getElementById('leftTeamSelect').value;
