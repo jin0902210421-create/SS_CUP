@@ -126,6 +126,7 @@
 
     // 🟢 追加：勝敗が確定したボタンを押したときの処理
     function winMatch(winnerSide) {
+        // 画像の試合番号（M1〜M6）に完全に連動させます
         const matchKey = document.getElementById('matchSelect').value;
         const lv = document.getElementById('leftTeamSelect').value;
         const rv = document.getElementById('rightTeamSelect').value;
@@ -137,15 +138,13 @@
         const winnerName = winnerSide === 'left' ? leftName : rightName;
 
         if (confirm(`${winnerName} の勝利で確定し、トーナメント表を更新しますか？`)) {
-            // トーナメント画面（別ソース）へ勝敗の信号を送信
             bc.postMessage({
                 type: 'TOURNAMENT_WIN',
-                match: matchKey,
-                winner: winnerSide, // 'left' または 'right'
+                match: matchKey, // 'M1', 'M2', 'M3' などの形で送信
+                winner: winnerSide,
                 winnerName: winnerName,
                 loserName: winnerSide === 'left' ? rightName : leftName
             });
-            alert("トーナメント表に勝敗を反映しました！試合間シーンを確認してください。");
         }
     }
 </script>
