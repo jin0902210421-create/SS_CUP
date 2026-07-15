@@ -69,7 +69,7 @@
         .road-line.w-run { background-color: #24e000; box-shadow: 0 0 15px #24e000, 0 0 5px #24e000; z-index: 2; }
         .road-line.l-run { background-color: #ff007f; box-shadow: 0 0 15px #ff007f, 0 0 5px #ff007f; z-index: 2; }
         
-        /* 📍 各枠の絶対座標固定（下段・中段） */
+        /* 📍 枠の配置（管理パネルのM1〜M7に完全に連動するようにIDを再割り当て） */
         #box_M1 { top: 820px; left: 160px; } 
         #box_M2 { top: 820px; left: 560px; } 
         #box_M3 { top: 580px; left: 360px; } 
@@ -77,23 +77,21 @@
         #box_M5 { top: 580px; left: 1360px; }
         #box_M6 { top: 340px; left: 860px; } 
         
-        /* 📍 最上段グランドファイナルエリア（初期状態はどちらも画面から完全に非表示） */
-        #box_M7 { top: 140px; left: 860px; display: none; transition: left 0.3s ease; }  /* ⑥ 総合決勝枠 */
-        #box_M7_Reset { top: 140px; left: 1120px; display: none; }                      /* ⑦ リセット戦枠 */
+        /* 📍 最上段グランドファイナルエリア（★デフォルト状態では完全に非表示） */
+        #box_M7 { top: 140px; left: 860px; display: none; }
     </style>
 </head>
 <body>
     <div class="tournament-title">第3回 SS杯 ダブルエリミネーション</div>
     
     <!-- 🎮 各枠のHTML要素 -->
-    <div class="match-card" id="box_M1"><div class="match-num">①</div><div class="slot" id="M1_1">Loading...</div><div class="slot" id="M1_2">Loading...</div></div>
-    <div class="match-card" id="box_M2"><div class="match-num">②</div><div class="slot" id="M2_1">Loading...</div><div class="slot" id="M2_2">Loading...</div></div>
-    <div class="match-card" id="box_M3"><div class="match-num">③</div><div class="slot" id="M3_1">？</div><div class="slot" id="M3_2">？</div></div>
-    <div class="match-card" id="box_M4"><div class="match-num">④</div><div class="slot" id="M4_1">？</div><div class="slot" id="M4_2">？</div></div>
-    <div class="match-card" id="box_M5"><div class="match-num">⑤</div><div class="slot" id="M5_1">？</div><div class="slot" id="M5_2">？</div></div>
-    <div class="match-card" id="box_M6"><div class="match-num">⑥</div><div class="slot" id="M6_1">？</div><div class="slot" id="M6_2">？</div></div>
-    <div class="match-card" id="box_M7"><div class="match-num">⑥</div><div class="slot" id="M7_1">？ (W)</div><div class="slot" id="M7_2">？ (L)</div></div>
-    <div class="match-card" id="box_M7_Reset"><div class="match-num">⑦</div><div class="slot" id="M7R_1">？</div><div class="slot" id="M7R_2">？</div></div>
+    <div class="match-card" id="box_M1"><div class="match-num">M1</div><div class="slot" id="M1_1">Loading...</div><div class="slot" id="M1_2">Loading...</div></div>
+    <div class="match-card" id="box_M2"><div class="match-num">M2</div><div class="slot" id="M2_1">Loading...</div><div class="slot" id="M2_2">Loading...</div></div>
+    <div class="match-card" id="box_M3"><div class="match-num">M3</div><div class="slot" id="M3_1">？</div><div class="slot" id="M3_2">？</div></div>
+    <div class="match-card" id="box_M4"><div class="match-num">M4</div><div class="slot" id="M4_1">？</div><div class="slot" id="M4_2">？</div></div>
+    <div class="match-card" id="box_M5"><div class="match-num">M5</div><div class="slot" id="M5_1">？</div><div class="slot" id="M5_2">？</div></div>
+    <div class="match-card" id="box_M6"><div class="match-num">M6</div><div class="slot" id="M6_1">？</div><div class="slot" id="M6_2">？</div></div>
+    <div class="match-card" id="box_M7"><div class="match-num">M7</div><div class="slot" id="M7_1">？</div><div class="slot" id="M7_2">？</div></div>
 
     <!-- 🔴 各ルートをつなぐ接続線 -->
     <div class="road-line" id="line_M1_L" style="top: 700px; left: 265px; width: 10px; height: 124px;"></div>
@@ -111,27 +109,25 @@
     <div class="road-line" id="line_M6_Up" style="top: 218px; left: 965px; width: 10px; height: 126px;"></div>
 <script>
     const SPREADSHEET_ID = '1-rTsNU4FdeSF1qc3gZinJzRK8jJTXIRKQKKEOicokHA';
+    
+    // 現在のトーナメント状態
     let tState = {
         M1: { w: null, t1: "Loading...", t2: "Loading..." }, M2: { w: null, t1: "Loading...", t2: "Loading..." },
-        M3: { w: null, t1: "？", t2: "？" }, M4: { w: null, t1: "？ (①敗者)", t2: "？ (②敗者)" },
-        M5: { w: null, t1: "？", t2: "？ (③敗者)" }, M6: { w: null, t1: "？ (③勝者)", t2: "？ (⑤勝者)" }, 
-        M7: { w: null, t1: "？ (W)", t2: "？ (L)" }, M7_Reset: { w: null, t1: "？", t2: "？" }
+        M3: { w: null, t1: "？", t2: "？" }, M4: { w: null, t1: "？", t2: "？" },
+        M5: { w: null, t1: "？", t2: "？" }, M6: { w: null, t1: "？", t2: "？" }, M7: { w: null, t1: "？", t2: "？" }
     };
 
-    // スプレッドシート名簿の自動初期ロード（CORS回避対応・完全版）
+    // 🔄 巻き戻し（リカバリ）用の履歴保存メモリ
+    let historyStack = [];
+
+    // スプレッドシート名簿の自動初期ロード
     async function initTournament() {
         try {
             const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`);
-            const text = await res.text(); 
-            const lines = text.split('\n'); 
-            let teams = [];
-            
+            const text = await res.text(); const lines = text.split('\n'); let teams = [];
             for(let i = 1; i <= 4; i++) {
-                if(lines[i]) { 
-                    const cells = lines[i].split(',');
-                    const name = cells[0].trim().replace(/^"|"$/g, '');
-                    teams.push(name || `チーム${i}`); 
-                } else { teams.push(`チーム${i}`); }
+                if(lines[i]) { const name = lines[i].split(',')[0].trim().replace(/^"|"$/g, ''); teams.push(name || `チーム${i}`); }
+                else { teams.push(`チーム${i}`); }
             }
             tState.M1.t1 = teams[0]; tState.M1.t2 = teams[1];
             tState.M2.t1 = teams[2]; tState.M2.t2 = teams[3];
@@ -139,11 +135,30 @@
         } catch (e) { console.error("名簿ロードエラー:", e); }
     }
 
-    // 管理パネルからの Broadcast 通信を受信
+    // 管理パネルからの通信を受信（勝者確定 ＆ リカバリ）
     const bc = new BroadcastChannel('splatoon3_tournament_sync');
     bc.onmessage = (event) => {
         if (event.data.type === 'TOURNAMENT_WIN') {
-            const d = event.data; processResult(d.match.toUpperCase(), d.w || d.winner, d.winnerName, d.loserName);
+            // 現在の状態を1手履歴としてセーブ
+            historyStack.push(JSON.stringify(tState));
+            const d = event.data; 
+            processResult(d.match.toUpperCase(), d.w || d.winner, d.winnerName, d.loserName);
+        }
+        else if (event.data.type === 'TOURNAMENT_UNDO') {
+            // 🔄 リカバリボタンが押されたら1手前に巻き戻す
+            if (historyStack.length > 0) {
+                tState = JSON.parse(historyStack.pop());
+                
+                // 画面の発光バーや枠線の赤色（クラス）を全て一度リセットして再描画
+                document.querySelectorAll('.match-card').forEach(el => el.classList.remove('w-win-active', 'l-win-active'));
+                document.querySelectorAll('.road-line').forEach(el => el.classList.remove('w-run', 'l-run'));
+                
+                // 過去の勝敗データに基づいて線を再点灯
+                rebuildEffects();
+                refreshDOM();
+            } else {
+                alert("これ以上戻せません！");
+            }
         }
     };
 
@@ -153,80 +168,93 @@
         tState[match].w = side;
         
         if(match === 'M1') {
+            tState.M3.t1 = wName; tState.M4.t1 = lName;
+        }
+        if(match === 'M2') {
+            tState.M3.t2 = wName; tState.M4.t2 = lName;
+        }
+        if(match === 'M3') {
+            tState.M6.t1 = wName; tState.M5.t2 = lName; 
+        }
+        if(match === 'M4') {
+            tState.M5.t1 = wName;
+        }
+        if(match === 'M5') {
+            tState.M6.t2 = wName;
+        }
+        if(match === 'M6') {
+            // 🚨 【最重要判定】：M6の試合結果によるM7の自動表示切り替え
+            if (side === 'left') {
+                // 勝者側(左：M3_Wi)チームが勝った場合 ➜ 1発優勝のため大会終了、M7は非表示のまま
+                document.getElementById('box_M7').style.display = 'none';
+            } else {
+                // 敗者側(右：M5_Wi)チームが勝った場合 ➜ 【リセット発生！M7を表示する】
+                document.getElementById('box_M7').style.display = 'block';
+                tState.M7.t1 = wName; // 1試合目勝者（敗者側チーム）
+                tState.M7.t2 = lName; // 1試合目敗者（勝者側チーム）
+            }
+        }
+        
+        applyEffects(match, side);
+        refreshDOM();
+    }
+
+    // 線と枠を発光させるエフェクト処理
+    function applyEffects(match, side) {
+        if(match === 'M1') {
             document.getElementById('box_M1').classList.add('w-win-active');
             ['line_M1_L','line_M1_H','line_M3_Go'].forEach(id => document.getElementById(id).classList.add('w-run'));
-            tState.M3.t1 = wName; tState.M4.t1 = lName;
         }
         if(match === 'M2') {
             document.getElementById('box_M2').classList.add('w-win-active');
             ['line_M2_L','line_M2_H','line_M3_Go'].forEach(id => document.getElementById(id).classList.add('w-run'));
-            tState.M3.t2 = wName; tState.M4.t2 = lName;
         }
         if(match === 'M3') {
             document.getElementById('box_M3').classList.add('w-win-active');
             ['line_M3_Up','line_M3_ToM6'].forEach(id => document.getElementById(id).classList.add('w-run'));
-            
-            // 💡【進行ルート修正】：③勝者側決勝の勝者は「⑥の上のマス」、敗者は「⑤の下のマス」へ送る
-            tState.M6.t1 = wName; // ③の勝者 ➜ ⑥の上マス(M6_1)へ進出
-            tState.M5.t2 = lName; // ③の敗者 ➜ ⑤の下マス(M5_2)へ転落
-            
-            // 💡【さらに修正】：③勝者側決勝の勝者は、同時に最上段の「⑥総合決勝」の勝者側(W)としてもセットしておく
-            tState.M7.t1 = wName; 
         }
         if(match === 'M4') {
             document.getElementById('box_M4').classList.add('l-win-active');
             ['line_M4_Up','line_M4_ToM5','line_M5_Go'].forEach(id => document.getElementById(id).classList.add('l-run'));
-            tState.M5.t1 = wName;
         }
         if(match === 'M5') {
             document.getElementById('box_M5').classList.add('l-win-active');
             ['line_M5_Up','line_M5_ToM6'].forEach(id => document.getElementById(id).classList.add('l-run'));
-            tState.M6.t2 = wName;
         }
         if(match === 'M6') {
             document.getElementById('box_M6').classList.add('l-win-active');
             document.getElementById('line_M6_Up').classList.add('l-run');
-            
-            // 💡 敗者側決勝(⑥)の勝者は、最上段「⑥総合決勝」の敗者側(L)へセットされる
-            tState.M7.t2 = wName;
         }
         if(match === 'M7') {
-            // 🚨 決勝の結果（M7）が送信された瞬間のみ、最上段の表示・非表示を確定
-            if (side === 'left') {
-                // 勝者側(W)チームが勝った場合 ➜ 1発優勝のため、⑥の枠だけを真ん中に表示。⑦は非表示
-                document.getElementById('box_M7').style.display = 'block';
-                document.getElementById('box_M7').style.left = '860px'; // 中央固定
-                document.getElementById('box_M7').classList.add('w-win-active');
-                document.getElementById('box_M7_Reset').style.display = 'none'; // ⑦は非表示
-            } else {
-                // 敗者側(L)チームが勝った場合 ➜ ⑥を左にずらし、右側に⑦リセット戦枠を同時に出現させる
-                document.getElementById('box_M7').style.display = 'block';
-                document.getElementById('box_M7').style.left = '700px'; // 左にスライド
-                document.getElementById('box_M7').classList.add('l-win-active');
-                
-                document.getElementById('box_M7_Reset').style.display = 'block'; // ⑦を表示
-                tState.M7_Reset.t1 = wName; // 1試合目勝者（敗者側チーム）
-                tState.M7_Reset.t2 = lName; // 1試合目敗者（勝者側チーム）
-            }
+            document.getElementById('box_M7').classList.add('w-win-active');
         }
-        if(match === 'M7_RESET') { document.getElementById('box_M7_Reset').classList.add('w-win-active'); }
-        refreshDOM();
     }
 
+    // 巻き戻し時に過去のエフェクトを再描画する処理
+    function rebuildEffects() {
+        if(tState.M6.w === 'right') { document.getElementById('box_M7').style.display = 'block'; }
+        else { document.getElementById('box_M7').style.display = 'none'; }
+        
+        for(let key in tState) {
+            if(tState[key].w) applyEffects(key, tState[key].w);
+        }
+    }
+
+    // 画面のテキスト・バッジのリフレッシュ処理
     function refreshDOM() {
-        const keys = ['M1','M2','M3','M4','M5','M6','M7'];
-        keys.forEach(key => {
-            const s1 = document.getElementById(`${key}_1`); const s2 = document.getElementById(`${key}_2`);
+        for(let key in tState) {
+            const s1 = document.getElementById(`${key}_1`);
+            const s2 = document.getElementById(`${key}_2`);
+            if(!s1 || !s2) continue;
+
             s1.innerHTML = tState[key].t1 + (tState[key].w === 'right' ? ' <span class="lose-badge active">敗退</span>' : '');
             s2.innerHTML = tState[key].t2 + (tState[key].w === 'left' ? ' <span class="lose-badge active">敗退</span>' : '');
+            
+            s1.className = "slot"; s2.className = "slot";
             if(tState[key].w) {
-                document.getElementById(`${key}_${tState[key].w === 'left' ? '1' : '2'}`).className = `slot is-winner ${key==='M4'||key==='M5'||key==='M6'?'right-winner':'left-winner'}`;
+                const winSlot = tState[key].w === 'left' ? s1 : s2;
+                winSlot.className = `slot is-winner ${key==='M4'||key==='M5'||key==='M6'?'right-winner':'left-winner'}`;
             }
-        });
-        document.getElementById('M7R_1').innerHTML = tState.M7_Reset.t1 + (tState.M7_Reset.w === 'right' ? ' <span class="lose-badge active">敗退</span>' : '');
-        document.getElementById('M7R_2').innerHTML = tState.M7_Reset.t2 + (tState.M7_Reset.w === 'left' ? ' <span class="lose-badge active">敗退</span>' : '');
-        if(tState.M7_Reset.w) {
-            document.getElementById(tState.M7_Reset.w === 'left' ? 'M7R_1' : 'M7R_2').className = 'slot is-winner left-winner';
         }
     }
     window.addEventListener('DOMContentLoaded', initTournament);
