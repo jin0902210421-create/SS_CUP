@@ -25,7 +25,7 @@
             font-weight: bold;
         }
         
-        /* 📦 対戦カード（ボックス）の絶対配置 */
+        /* 📦 対戦カード（ボックス）の配置ルール */
         .match-card {
             position: absolute;
             width: 220px;
@@ -69,15 +69,17 @@
         .road-line.w-run { background-color: #24e000; box-shadow: 0 0 15px #24e000, 0 0 5px #24e000; z-index: 2; }
         .road-line.l-run { background-color: #ff007f; box-shadow: 0 0 15px #ff007f, 0 0 5px #ff007f; z-index: 2; }
         
-        /* 📍 お送りいただいたイメージ画像の通りに座標を完全固定 */
+        /* 📍 枠の絶対座標固定（最下段・中段） */
         #box_M1 { top: 820px; left: 160px; } 
         #box_M2 { top: 820px; left: 560px; } 
         #box_M3 { top: 580px; left: 360px; } 
         #box_M4 { top: 820px; left: 1160px; }
         #box_M5 { top: 580px; left: 1360px; }
         #box_M6 { top: 340px; left: 860px; } 
-        #box_M7 { top: 140px; left: 860px; transition: left 0.3s ease; } /* ⑥（総合決勝1試合目：初期位置は真ん中） */
-        #box_M7_Reset { top: 140px; left: 1120px; display: none; } /* ⑦ リセット決勝枠（★デフォルト完全非表示） */
+        
+        /* 📍 最上段グランドファイナルエリア（★初期状態はどちらも画面から完全非表示にします） */
+        #box_M7 { top: 140px; left: 740px; display: none; }       /* ⑥ 総合決勝1回目枠 */
+        #box_M7_Reset { top: 140px; left: 990px; display: none; } /* ⑦ リセット戦枠 */
     </style>
 </head>
 <body>
@@ -116,19 +118,25 @@
         M7: { w: null, t1: "？ (W)", t2: "？ (L)" }, M7_Reset: { w: null, t1: "？", t2: "？" }
     };
 
-    // スプレッドシート名簿の自動初期ロード（CORS回避・CSVバイパス対応版）
+    // スプレッドシート名簿の自動初期ロード（CORS回避・CSVバイパス・バグ修正版）
     async function initTournament() {
         try {
-            const res = await fetch(`https://google.com{SPREADSHEET_ID}/export?format=csv&gid=0`);
-            const text = await res.text(); const lines = text.split('\n'); let teams = [];
+            const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`);
+            const text = await res.text(); 
+            const lines = text.split('\n'); 
+            let teams = [];
+            
             for(let i = 1; i <= 4; i++) {
-                if(lines[i]) { const name = lines[i].split(',')[0].trim().replace(/^"|"$/g, ''); teams.push(name || `チーム${i}`); }
-                else { teams.push(`チーム${i}`); }
+                if(lines[i]) { 
+                    const cells = lines[i].split(',');
+                    const name = cells[0].trim().replace(/^"|"$/g, '');
+                    teams.push(name || `チーム${i}`); 
+                } else { teams.push(`チーム${i}`); }
             }
             tState.M1.t1 = teams[0]; tState.M1.t2 = teams[1];
             tState.M2.t1 = teams[2]; tState.M2.t2 = teams[3];
             refreshDOM();
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("名簿ロードエラー:", e); }
     }
 
     // 管理パネルからの Broadcast 通信を受信
@@ -139,7 +147,7 @@
         }
     };
 
-    // ダブルエリミネーションの全自動ツリー判定ロジック
+    // ダブルエリミネーションの全自動ツリー判定＆表示切り替えロジック
     function processResult(match, side, wName, lName) {
         if (!tState[match]) return;
         tState[match].w = side;
@@ -158,6 +166,9 @@
             document.getElementById('box_M3').classList.add('w-win-active');
             ['line_M3_Up','line_M3_ToM6'].forEach(id => document.getElementById(id).classList.add('w-run'));
             tState.M7.t1 = wName; tState.M5.t2 = lName; 
+            
+            // 💡 準決勝が終わったら、上の「⑥総合決勝」の枠を画面上に出現させる
+            document.getElementById('box_M7').style.display = 'block';
         }
         if(match === 'M4') {
             document.getElementById('box_M4').classList.add('l-win-active');
@@ -173,19 +184,20 @@
             document.getElementById('box_M6').classList.add('l-win-active');
             document.getElementById('line_M6_Up').classList.add('l-run');
             tState.M7.t2 = wName;
+            
+            // 💡 敗者側決勝が終わったら、確実に「⑥総合決勝」の枠を画面上に出現させる
+            document.getElementById('box_M7').style.display = 'block';
         }
         if(match === 'M7') {
-            // 🚨 【リセット分岐ロジック完全対応】
+            // 🚨 ご指摘に基づき100%完全再現したグランドファイナルの条件分岐
             if (side === 'left') {
                 // 勝者側(W)チームが勝った場合 ➜ 1発優勝のため、⑦は出さずに終了
                 document.getElementById('box_M7').classList.add('w-win-active');
-                document.getElementById('box_M7_Reset').style.display = 'none'; // ⑦は非表示のまま
-                document.getElementById('box_M7').style.left = '860px';          // ⑥の枠は真ん中のまま固定
+                document.getElementById('box_M7_Reset').style.display = 'none';
             } else {
-                // 敗者側(L)チームが勝った場合 ➜ 【⑦リセット戦が発生！】
+                // 敗者側(L)チームが勝った場合 ➜ 【⑦リセット戦枠を自動出現！】
                 document.getElementById('box_M7').classList.add('l-win-active');
-                document.getElementById('box_M7_Reset').style.display = 'block'; // ⑦の枠をここで初めて出現させる
-                document.getElementById('box_M7').style.left = '700px';          // ⑥の枠を左にスッとスライドさせる
+                document.getElementById('box_M7_Reset').style.display = 'block'; // ⑦の枠をここで初めて表示
                 tState.M7_Reset.t1 = wName; tState.M7_Reset.t2 = lName;
             }
         }
