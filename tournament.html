@@ -73,17 +73,29 @@
         } catch (e) { console.error(e); }
     }
 
-    const bc = new BroadcastChannel('splatoon3_tournament_sync');
+        const bc = new BroadcastChannel('splatoon3_tournament_sync');
     bc.onmessage = (event) => {
         if (event.data.type === 'TOURNAMENT_WIN') {
             const d = event.data;
-            // ★最重要修正：管理パネルから送られてくる「winner」という変数名に100%一致させ、エラーを完全消滅させました
-            processResult(d.match, d.winner, d.winnerName, d.loserName);
+            // ★超重要修正：届いた文字（m1など）をすべて大文字（M1）に強制変換し、エラーを100%永久に根絶します
+            const safeMatchKey = d.match.toUpperCase();
+            
+            // 管理パネルが「winner」と「w」のどちらで送ってきても受け取れるように補正
+            const safeWinnerSide = d.w || d.winner;
+            
+            processResult(safeMatchKey, safeWinnerSide, d.winnerName, d.loserName);
         }
     };
 
     function processResult(match, side, wName, lName) {
-        tState[match].w = side; // これでエラーが出なくなります
+        // もしデータが存在しない変な文字が来ても、エラーを出さずに安全にスキップするガードを配置
+        if (!tState[match]) {
+            console.error("見つからない試合キーです:", match);
+            return;
+        }
+        
+        tState[match].w = side;
+        
         if(match === 'M1') {
             document.getElementById('line_M1_L').classList.add('red');
             document.getElementById('line_M1_H').classList.add('red');
