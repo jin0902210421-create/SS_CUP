@@ -34,14 +34,14 @@
     // =========================================================================
     // 🔗 【設定箇所】ご自身のGoogleスプレッドシートID
     // =========================================================================
-    const SPREADSHEET_ID = '/1-rTsNU4FdeSF1qc3gZinJzRK8jJTXIRKQKKEOicokHA';
+    const SPREADSHEET_ID = '1-rTsNU4FdeSF1qc3gZinJzRK8jJTXIRKQKKEOicokHA';
     // =========================================================================
 
     let tournamentData = {};
 
     // 起動時にGoogleスプレッドシートから名簿を自動取得
     async function loadSpreadsheetData() {
-        const url = `https://docs.google.com${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
         try {
             const response = await fetch(url);
             const rawText = await response.text();
