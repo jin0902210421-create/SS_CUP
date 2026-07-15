@@ -5,33 +5,43 @@
     <title>ダブルエリミネーション トーナメント表</title>
     <style>
         @import url('https://googleapis.com');
-        body { margin:0; padding:0; width:1920px; height:1080px; box-sizing:border-box; background-color:#0b0c10; color:#fff; font-family:'Noto Sans JP',sans-serif; overflow:hidden; position:relative; }
-        .tournament-title { position:absolute; top:40px; left:0; width:1920px; text-align:center; font-size:42px; color:#fff; text-shadow:0 0 10px rgba(0,255,204,0.3); font-weight:bold; }
-        .match-card { position:absolute; width:220px; background:#1b1d24; border:2px solid #3a3f4d; border-radius:8px; box-shadow:0 8px 25px rgba(0,0,0,0.7); z-index:10; transition:all 0.3s; }
-        .match-num { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:#3a3f4d; color:#fff; font-size:12px; padding:1px 8px; border-radius:10px; border:1px solid #555; font-weight:bold; }
-        /* 枠ごとの勝敗ハイライト */
-        .match-card.w-win-active { border-color:#24e000; box-shadow:0 0 15px rgba(36,224,0,0.3); }
-        .match-card.l-win-active { border-color:#ff007f; box-shadow:0 0 15px rgba(255,0,127,0.3); }
-        .slot { padding:10px; font-size:15px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-bottom:1px solid #282b35; color:#aaa; font-weight:bold; transition:all 0.3s; }
-        .slot:last-child { border-bottom:none; border-radius:0 0 6px 6px; }
-        /* 文字の見やすさ大幅アップ */
-        .slot.is-winner { color:#fff !important; background:rgba(255,255,255,0.05); }
-        .slot.is-loser { color:#4a4e5a !important; text-shadow:none !important; opacity:0.4; }
-        .left-winner { text-shadow:0 0 8px #24e000; color:#24e000 !important; }
-        .right-winner { text-shadow:0 0 8px #ff007f; color:#ff007f !important; }
+        body { margin: 0; padding: 0; width: 1920px; height: 1080px; box-sizing: border-box; background-color: #121317; color: #fff; font-family: 'Noto Sans JP', sans-serif; overflow: hidden; position: relative; }
+        .tournament-title { position: absolute; top: 40px; left: 0; width: 1920px; text-align: center; font-size: 38px; color: #fff; text-shadow: 0 0 10px rgba(0,255,204,0.3); font-weight: bold; }
         
-        /* 🔴 接続線デザイン（12pxのネオン発光） */
-        .road-line { position:absolute; background-color:#23262f; z-index:1; transition:all 0.3s; border-radius:6px; }
-        .road-line.w-run { background-color:#24e000; box-shadow:0 0 15px #24e000, 0 0 5px #24e000; z-index:2; }
-        .road-line.l-run { background-color:#ff007f; box-shadow:0 0 15px #ff007f, 0 0 5px #ff007f; z-index:2; }
+        /* 📦 対戦カード（ボックス）の絶対配置 */
+        .match-card { position: absolute; width: 220px; background: #1f2226; border: 2px solid #3a3f4d; border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.7); z-index: 10; transition: all 0.3s; }
+        .match-num { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #3a3f4d; color: #fff; font-size: 12px; padding: 1px 8px; border-radius: 10px; border: 1px solid #555; font-weight: bold; }
         
-        #box_M1 { top:820px; left:160px; } #box_M2 { top:820px; left:560px; } #box_M4 { top:820px; left:1160px; }
-        #box_M3 { top:580px; left:360px; }  #box_M5 { top:580px; left:1360px; }
-        #box_M6 { top:340px; left:860px; }  #box_M7 { top:140px; left:860px; }
+        /* 勝敗確定時の枠発光 */
+        .match-card.w-win-active { border-color: #24e000; box-shadow: 0 0 15px rgba(36,224,0,0.4); }
+        .match-card.l-win-active { border-color: #ff007f; box-shadow: 0 0 15px rgba(255,0,127,0.4); }
+        
+        .slot { padding: 10px; font-size: 15px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid #282b35; color: #aaa; font-weight: bold; transition: all 0.3s; }
+        .slot:last-child { border-bottom: none; border-radius: 0 0 6px 6px; }
+        .slot.is-winner { color: #fff !important; background: rgba(255,255,255,0.05); }
+        .slot.is-loser { color: #4a4e5a !important; text-shadow: none !important; opacity: 0.3; }
+        .left-winner { text-shadow: 0 0 8px #24e000; color: #24e000 !important; }
+        .right-winner { text-shadow: 0 0 8px #ff007f; color: #ff007f !important; }
+        
+        /* 🔴 接続線の太さとネオンデザイン（10pxに最適化） */
+        .road-line { position: absolute; background-color: #23262f; z-index: 1; transition: all 0.3s; border-radius: 4px; }
+        .road-line.w-run { background-color: #24e000; box-shadow: 0 0 15px #24e000, 0 0 5px #24e000; z-index: 2; }
+        .road-line.l-run { background-color: #ff007f; box-shadow: 0 0 15px #ff007f, 0 0 5px #ff007f; z-index: 2; }
+        
+        /* 📍 イメージ画像のツリー構造の座標を完全に再計算してピタッと固定 */
+        #box_M1 { top: 820px; left: 160px; } /* ① 勝者側A */
+        #box_M2 { top: 820px; left: 560px; } /* ② 勝者側B */
+        #box_M3 { top: 580px; left: 360px; } /* ③ 勝者決勝 */
+        #box_M4 { top: 820px; left: 1160px; }/* ④ 敗者1回戦 */
+        #box_M5 { top: 580px; left: 1360px; }/* ⑤ 敗者2回戦 */
+        #box_M6 { top: 340px; left: 860px; } /* ⑥ 敗者決勝 */
+        #box_M7 { top: 140px; left: 860px; } /* ⑦ 総合決勝 */
     </style>
 </head>
 <body>
-    <div class="tournament-title">SS杯 トーナメント表</div>
+    <div class="tournament-title">第3回 SS杯 ダブルエリミネーション</div>
+    
+    <!-- 🎮 枠の配置 -->
     <div class="match-card" id="box_M1"><div class="match-num">①</div><div class="slot" id="M1_1">Loading...</div><div class="slot" id="M1_2">Loading...</div></div>
     <div class="match-card" id="box_M2"><div class="match-num">②</div><div class="slot" id="M2_1">Loading...</div><div class="slot" id="M2_2">Loading...</div></div>
     <div class="match-card" id="box_M3"><div class="match-num">③</div><div class="slot" id="M3_1">？</div><div class="slot" id="M3_2">？</div></div>
@@ -40,19 +50,30 @@
     <div class="match-card" id="box_M6"><div class="match-num">⑥</div><div class="slot" id="M6_1">？ (③勝者)</div><div class="slot" id="M6_2">？ (⑤勝者)</div></div>
     <div class="match-card" id="box_M7"><div class="match-num">⑦</div><div class="slot" id="M7_1">？ (⑥勝者)</div><div class="slot" id="M7_2">？ (⑥敗者)</div></div>
 
-    <!-- コネクト配線（太さを12pxに強化） -->
-    <div class="road-line" id="line_M1_L" style="top:710px; left:264px; width:12px; height:110px;"></div>
-    <div class="road-line" id="line_M1_H" style="top:710px; left:264px; width:200px; height:12px;"></div>
-    <div class="road-line" id="line_M2_L" style="top:710px; left:664px; width:12px; height:110px;"></div>
-    <div class="road-line" id="line_M2_H" style="top:710px; left:464px; width:212px; height:12px;"></div>
-    <div class="road-line" id="line_M3_Go" style="top:650px; left:464px; width:12px; height:72px;"></div>
-    <div class="road-line" id="line_M3_Up" style="top:470px; left:464px; width:12px; height:114px;"></div>
-    <div class="road-line" id="line_M3_ToM6" style="top:470px; left:464px; width:408px; height:12px;"></div>
-    <div class="road-line" id="line_M4_Up" style="top:710px; left:1264px; width:12px; height:114px;"></div>
-    <div class="road-line" id="line_M4_ToM5" style="top:710px; left:1264px; width:208px; height:12px;"></div>
-    <div class="road-line" id="line_M5_Up" style="top:470px; left:1464px; width:12px; height:114px;"></div>
-    <div class="road-line" id="line_M5_ToM6" style="top:470px; left:1064px; width:412px; height:12px;"></div>
-    <div class="road-line" id="line_M6_Up" style="top:230px; left:964px; width:12px; height:114px;"></div>
+    <!-- 🔴 線の座標を枠の真ん中に完璧にスライド・合致処理 -->
+    <!-- ①から③への合流線 -->
+    <div class="road-line" id="line_M1_L" style="top: 700px; left: 265px; width: 10px; height: 124px;"></div>
+    <div class="road-line" id="line_M1_H" style="top: 700px; left: 265px; width: 200px; height: 10px;"></div>
+    <!-- ②から③への合流線 -->
+    <div class="road-line" id="line_M2_L" style="top: 700px; left: 665px; width: 10px; height: 124px;"></div>
+    <div class="road-line" id="line_M2_H" style="top: 700px; left: 465px; width: 210px; height: 10px;"></div>
+    <div class="road-line" id="line_M3_Go" style="top: 658px; left: 465px; width: 10px; height: 46px;"></div>
+    
+    <!-- ③から⑥への接続線 -->
+    <div class="road-line" id="line_M3_Up" style="top: 460px; left: 465px; width: 10px; height: 124px;"></div>
+    <div class="road-line" id="line_M3_ToM6" style="top: 460px; left: 465px; width: 500px; height: 10px;"></div>
+
+    <!-- ④から⑤への接続線 -->
+    <div class="road-line" id="line_M4_Up" style="top: 700px; left: 1265px; width: 10px; height: 124px;"></div>
+    <div class="road-line" id="line_M4_ToM5" style="top: 700px; left: 1265px; width: 200px; height: 10px;"></div>
+    <div class="road-line" id="line_M5_Go" style="top: 658px; left: 1465px; width: 10px; height: 46px;"></div>
+
+    <!-- ⑤から⑥への接続線 -->
+    <div class="road-line" id="line_M5_Up" style="top: 460px; left: 1465px; width: 10px; height: 124px;"></div>
+    <div class="road-line" id="line_M5_ToM6" style="top: 460px; left: 965px; width: 510px; height: 10px;"></div>
+
+    <!-- ⑥から⑦への接続線 -->
+    <div class="road-line" id="line_M6_Up" style="top: 218px; left: 965px; width: 10px; height: 126px;"></div>
 
 <script>
     const SPREADSHEET_ID = '1-rTsNU4FdeSF1qc3gZinJzRK8jJTXIRKQKKEOicokHA';
@@ -87,7 +108,6 @@
         if (!tState[match]) return;
         tState[match].w = side;
         
-        // 勝者ルート(グリーン)と敗者ルート(ピンク)の光分け
         if(match === 'M1') {
             document.getElementById('box_M1').classList.add('w-win-active');
             ['line_M1_L','line_M1_H','line_M3_Go'].forEach(id => document.getElementById(id).classList.add('w-run'));
@@ -105,7 +125,7 @@
         }
         if(match === 'M4') {
             document.getElementById('box_M4').classList.add('l-win-active');
-            ['line_M4_Up','line_M4_ToM5'].forEach(id => document.getElementById(id).classList.add('l-run'));
+            ['line_M4_Up','line_M4_ToM5','line_M5_Go'].forEach(id => document.getElementById(id).classList.add('l-run'));
             tState.M5.t1 = wName;
         }
         if(match === 'M5') {
@@ -133,7 +153,6 @@
             if(tState[key].w) {
                 const winSlot = tState[key].w === 'left' ? s1 : s2;
                 const loseSlot = tState[key].w === 'left' ? s2 : s1;
-                
                 winSlot.className = `slot is-winner ${key==='M4'||key==='M5'||key==='M6'?'right-winner':'left-winner'}`;
                 loseSlot.className = "slot is-loser";
             }
