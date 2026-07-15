@@ -39,35 +39,35 @@
 
     let tournamentData = {};
 
-    // 起動時にGoogleスプレッドシートから名簿を自動取得
+    // 起動時にGoogleスプレッドシートから名簿をCSV形式で自動取得
     async function loadSpreadsheetData() {
-        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
+        // ★CORSブロックを100%回避するため、非公開共有でも通信できるCSVエクスポートURLに変更
+        // const url = `https://google.com/${SPREADSHEET_ID}/export?format=csv&gid=0`;
+        const url = `https://google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`;
         try {
             const response = await fetch(url);
-            const rawText = await response.text();
+            const text = await response.text();
             
-            const jsonText = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
-            const dataObj = JSON.parse(jsonText);
-            const rows = dataObj.table.rows;
-            
+            // CSVデータを改行ごとに分解
+            const lines = text.split('\n');
             tournamentData = {};
             
-            rows.forEach((row, index) => {
-                const cells = row.c;
-                if (cells && cells[0] && cells[0].v) {
-                    const teamName = cells[0].v;
-                    const members = [];
-                    for (let i = 1; i <= 4; i++) {
-                        members.push((cells[i] && cells[i].v) ? cells[i].v.toString() : "");
-                    }
-                    
-                    tournamentData["team_" + (index + 1)] = {
-                        name: teamName,
-                        members: members
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i] || lines[i].trim() === "") continue;
+                
+                // カンマ区切りでセルを分解し、余計なクォーテーションを除去
+                const cells = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                
+                // 1列目（チーム名）が存在すれば登録
+                if (cells[0]) {
+                    tournamentData["team_" + i] = {
+                        name: cells[0],
+                        members: [cells[1] || "", cells[2] || "", cells[3] || "", cells[4] || ""]
                     };
                 }
-            });
+            }
 
+            // 左右のプルダウンの選択肢を全自動で生成
             ['leftTeamSelect', 'rightTeamSelect'].forEach(id => {
                 let h = '<option value="none">-- 選択してください --</option>';
                 for(let k in tournamentData) h += `<option value="${k}">${tournamentData[k].name}</option>`;
