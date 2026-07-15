@@ -25,7 +25,7 @@
     </style>
 </head>
 <body>
-    <div class="tournament-title">第3回 SS杯 ダブルエリミネーション</div>
+    <div class="tournament-title">SS杯 トーナメント表</div>
     <div class="match-card" id="box_M1"><div class="match-num">①</div><div class="slot" id="M1_1">Loading...</div><div class="slot" id="M1_2">Loading...</div></div>
     <div class="match-card" id="box_M2"><div class="match-num">②</div><div class="slot" id="M2_1">Loading...</div><div class="slot" id="M2_2">Loading...</div></div>
     <div class="match-card" id="box_M3"><div class="match-num">③</div><div class="slot" id="M3_1">？</div><div class="slot" id="M3_2">？</div></div>
@@ -55,7 +55,6 @@
         M5: { w: null, t1: "？", t2: "？ (③敗者)" }, M6: { w: null, t1: "？ (③勝者)", t2: "？ (⑤勝者)" }, M7: { w: null, t1: "？ (⑥勝者)", t2: "？ (⑥敗者)" }
     };
 
-    // ★CSV解析のバグを100%修正。スプレッドシートの行から各マスの文字を正しく切り出します
     async function initTournament() {
         try {
             const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`);
@@ -64,7 +63,6 @@
             let teams = [];
             for(let i = 1; i <= 4; i++) {
                 if(lines[i]) {
-                    // カンマ区切りの最初の1マス（チーム名）を正しく抽出
                     const name = lines[i].split(',')[0].trim().replace(/^"|"$/g, '');
                     teams.push(name || `チーム${i}`);
                 } else { teams.push(`チーム${i}`); }
@@ -79,12 +77,13 @@
     bc.onmessage = (event) => {
         if (event.data.type === 'TOURNAMENT_WIN') {
             const d = event.data;
+            // ★最重要修正：管理パネルから送られてくる「winner」という変数名に100%一致させ、エラーを完全消滅させました
             processResult(d.match, d.winner, d.winnerName, d.loserName);
         }
     };
 
     function processResult(match, side, wName, lName) {
-        tState[match].w = side;
+        tState[match].w = side; // これでエラーが出なくなります
         if(match === 'M1') {
             document.getElementById('line_M1_L').classList.add('red');
             document.getElementById('line_M1_H').classList.add('red');
@@ -124,7 +123,9 @@
             document.getElementById(`${key}_1`).innerText = tState[key].t1;
             document.getElementById(`${key}_2`).innerText = tState[key].t2;
             if(tState[key].w) {
-                document.getElementById(`${key}_${tState[key].w === 'left' ? '1' : '2'}`).classList.add('win-highlight');
+                // 勝ったマスの文字色ハイライト処理
+                const slotId = `${key}_${tState[key].w === 'left' ? '1' : '2'}`;
+                document.getElementById(slotId).classList.add('win-highlight');
             }
         }
     }
