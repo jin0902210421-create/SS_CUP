@@ -21,7 +21,7 @@
             position: absolute;
             top: 40px; left: 0; width: 1920px;
             text-align: center; font-size: 38px;
-            color: #fff; text-shadow: 0 0 10px rgba(255,0,127,0.3);
+            color: #fff; text-shadow: 0 0 10px rgba(0,255,204,0.3);
             font-weight: bold;
         }
         
@@ -69,7 +69,7 @@
         .road-line.w-run { background-color: #24e000; box-shadow: 0 0 15px #24e000, 0 0 5px #24e000; z-index: 2; }
         .road-line.l-run { background-color: #ff007f; box-shadow: 0 0 15px #ff007f, 0 0 5px #ff007f; z-index: 2; }
         
-        /* 📍 各枠の絶対座標をピタッと固定（下段・中段） */
+        /* 📍 各枠の絶対座標固定（下段・中段） */
         #box_M1 { top: 820px; left: 160px; } 
         #box_M2 { top: 820px; left: 560px; } 
         #box_M3 { top: 580px; left: 360px; } 
@@ -77,7 +77,7 @@
         #box_M5 { top: 580px; left: 1360px; }
         #box_M6 { top: 340px; left: 860px; } 
         
-        /* 📍 最上段グランドファイナルエリア（★初期状態はどちらも画面から【完全に】非表示にします） */
+        /* 📍 最上段グランドファイナルエリア（初期状態はどちらも画面から完全に非表示） */
         #box_M7 { top: 140px; left: 860px; display: none; transition: left 0.3s ease; }  /* ⑥ 総合決勝枠 */
         #box_M7_Reset { top: 140px; left: 1120px; display: none; }                      /* ⑦ リセット戦枠 */
     </style>
@@ -118,7 +118,7 @@
         M7: { w: null, t1: "？ (W)", t2: "？ (L)" }, M7_Reset: { w: null, t1: "？", t2: "？" }
     };
 
-    // スプレッドシート名簿の自動初期ロード（CORS回避・CSVバイパス・バグ完全修正版）
+    // スプレッドシート名簿の自動初期ロード（CORS回避対応・完全版）
     async function initTournament() {
         try {
             const res = await fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=0`);
@@ -165,8 +165,13 @@
         if(match === 'M3') {
             document.getElementById('box_M3').classList.add('w-win-active');
             ['line_M3_Up','line_M3_ToM6'].forEach(id => document.getElementById(id).classList.add('w-run'));
-            tState.M7.t1 = wName; tState.M5.t2 = lName; 
-            // 💡 修正：ここではまだ上の⑥を表示させない（ガード処理）
+            
+            // 💡【進行ルート修正】：③勝者側決勝の勝者は「⑥の上のマス」、敗者は「⑤の下のマス」へ送る
+            tState.M6.t1 = wName; // ③の勝者 ➜ ⑥の上マス(M6_1)へ進出
+            tState.M5.t2 = lName; // ③の敗者 ➜ ⑤の下マス(M5_2)へ転落
+            
+            // 💡【さらに修正】：③勝者側決勝の勝者は、同時に最上段の「⑥総合決勝」の勝者側(W)としてもセットしておく
+            tState.M7.t1 = wName; 
         }
         if(match === 'M4') {
             document.getElementById('box_M4').classList.add('l-win-active');
@@ -181,19 +186,20 @@
         if(match === 'M6') {
             document.getElementById('box_M6').classList.add('l-win-active');
             document.getElementById('line_M6_Up').classList.add('l-run');
+            
+            // 💡 敗者側決勝(⑥)の勝者は、最上段「⑥総合決勝」の敗者側(L)へセットされる
             tState.M7.t2 = wName;
-            // 💡 修正：ここではまだ上の⑥を表示させない（ガード処理）
         }
         if(match === 'M7') {
-            // 🚨 【ご指定の挙動】決勝の結果（M7）が送信された瞬間のみ、表示・非表示を確定させます
+            // 🚨 決勝の結果（M7）が送信された瞬間のみ、最上段の表示・非表示を確定
             if (side === 'left') {
-                // 勝者側(W)チームが勝った場合 ➜ 1発優勝のため、⑥の枠だけを真ん中にドカンと表示。⑦は非表示のまま終了
+                // 勝者側(W)チームが勝った場合 ➜ 1発優勝のため、⑥の枠だけを真ん中に表示。⑦は非表示
                 document.getElementById('box_M7').style.display = 'block';
                 document.getElementById('box_M7').style.left = '860px'; // 中央固定
                 document.getElementById('box_M7').classList.add('w-win-active');
                 document.getElementById('box_M7_Reset').style.display = 'none'; // ⑦は非表示
             } else {
-                // 敗者側(L)チームが勝った場合 ➜ ⑥を左にずらし、右側に⑦リセット戦枠を同時に出現させる！
+                // 敗者側(L)チームが勝った場合 ➜ ⑥を左にずらし、右側に⑦リセット戦枠を同時に出現させる
                 document.getElementById('box_M7').style.display = 'block';
                 document.getElementById('box_M7').style.left = '700px'; // 左にスライド
                 document.getElementById('box_M7').classList.add('l-win-active');
